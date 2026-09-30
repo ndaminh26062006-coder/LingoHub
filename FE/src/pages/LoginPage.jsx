@@ -22,8 +22,9 @@ export default function LoginPage() {
 
   // Mock accounts for demo
   const DEMO_ACCOUNTS = [
-    { email: 'demo@lingohub.vn',  password: '123456', name: 'Nguyễn Văn Demo' },
-    { email: 'sinhvien@uni.edu.vn', password: '123456', name: 'Trần Thị Sinh Viên' },
+    { email: 'admin@lingohub.vn',   password: 'admin123', name: 'Admin LingoHub',     role: 'admin' },
+    { email: 'demo@lingohub.vn',    password: '123456',   name: 'Nguyễn Văn Demo',   role: 'student' },
+    { email: 'sinhvien@uni.edu.vn', password: '123456',   name: 'Trần Thị Sinh Viên', role: 'student' },
   ];
 
   const handleSubmit = e => {
@@ -39,8 +40,8 @@ export default function LoginPage() {
       return;
     }
     setErrors({});
-    login({ name: matched.name, email: matched.email });
-    navigate('/');
+    login({ name: matched.name, email: matched.email, role: matched.role });
+    navigate(matched.role === 'admin' ? '/admin' : '/');
   };
 
   const set = field => e => setForm(f => ({ ...f, [field]: e.target.value }));
@@ -161,14 +162,20 @@ export default function LoginPage() {
             <div className="demo-hint">
               <span className="demo-hint__icon">💡</span>
               <div className="demo-hint__text">
-                <strong>Tài khoản thử:</strong>{' '}
-                <span
-                  className="demo-fill-link"
-                  onClick={() => setForm({ email: 'demo@lingohub.vn', password: '123456' })}
-                >
-                  demo@lingohub.vn
-                </span>
-                {' '}· mật khẩu: <code>123456</code>
+                <div style={{ marginBottom: 6 }}>
+                  <strong>Sinh viên:</strong>{' '}
+                  <span className="demo-fill-link" onClick={() => setForm({ email: 'demo@lingohub.vn', password: '123456' })}>
+                    demo@lingohub.vn
+                  </span>
+                  {' '}· <code>123456</code>
+                </div>
+                <div>
+                  <strong>Admin:</strong>{' '}
+                  <span className="demo-fill-link" onClick={() => setForm({ email: 'admin@lingohub.vn', password: 'admin123' })}>
+                    admin@lingohub.vn
+                  </span>
+                  {' '}· <code>admin123</code>
+                </div>
               </div>
             </div>
 

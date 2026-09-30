@@ -707,16 +707,29 @@
   }
   .exam-sidebar { order: -1; }
   .exam-sidebar__sticky { position: static; }
-  .sidebar-nav-card { display: none; }
+  .sidebar-nav-card   { display: none; }
   .sidebar-timer-card { display: none; }
 }
 
 @media (max-width: 640px) {
-  .exam-topbar { padding: 10px 14px; gap: 10px; }
+  .exam-topbar         { padding: 10px 14px; gap: 8px; flex-wrap: nowrap; }
   .exam-topbar__center { display: none; }
-  .question-card { padding: 18px; }
-  .question-text { font-size: 15px; }
-  .results-stats { grid-template-columns: repeat(2, 1fr); }
-  .results-actions { flex-direction: column; }
+  .exam-topbar__title  { font-size: 13px; max-width: 160px; }
+  .question-card       { padding: 16px; }
+  .question-text       { font-size: 15px; }
+  .option-btn          { padding: 11px 14px; }
+  .results-stats       { grid-template-columns: repeat(2, 1fr); }
+  .results-actions     { flex-direction: column; }
   .results-actions .btn { width: 100%; justify-content: center; }
+  .results-page        { padding: 20px 0 40px; }
+}
+
+@media (max-width: 480px) {
+  .results-header        { padding: 24px 18px 16px; }
+  .results-actions       { padding: 16px 18px; }
+  .modal                 { padding: 24px 18px; }
+  .modal__actions        { flex-direction: column; }
+  .modal__actions .btn   { width: 100%; justify-content: center; }
+  .result-stat__value    { font-size: 22px; }
+  .exam-nav-arrows .btn  { padding: 9px 14px; font-size: 13px; }
 }

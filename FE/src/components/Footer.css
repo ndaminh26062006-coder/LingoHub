@@ -91,6 +91,8 @@
 @media (max-width: 520px) {
   .footer__inner {
     grid-template-columns: 1fr;
-    padding: 36px 0 28px;
+    padding: 28px 0 24px;
+    gap: 24px;
   }
+  .footer__brand-desc { max-width: none; }
 }

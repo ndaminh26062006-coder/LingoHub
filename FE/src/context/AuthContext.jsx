@@ -2,7 +2,6 @@ import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
-// Derive initial state from localStorage (persists across page refresh)
 function getInitialUser() {
   try {
     const raw = localStorage.getItem('lh_user');
@@ -19,6 +18,7 @@ export function AuthProvider({ children }) {
     const u = {
       name:   userData.name  || userData.email.split('@')[0],
       email:  userData.email,
+      role:   userData.role  || 'student',   // 'admin' | 'student'
       avatar: userData.avatar || null,
     };
     localStorage.setItem('lh_user', JSON.stringify(u));
@@ -30,8 +30,10 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

@@ -93,6 +93,9 @@
 }
 
 @media (max-width: 640px) {
-  .page-header          { padding: 36px 0 28px; }
-  .page-header__icon    { font-size: 36px; }
+  .page-header             { padding: 28px 0 22px; }
+  .page-header--colored    { padding: 28px 0; }
+  .page-header__icon       { font-size: 32px; }
+  .page-header__subtitle   { font-size: 14px; max-width: none; }
+  .page-header__breadcrumb { margin-bottom: 12px; }
 }

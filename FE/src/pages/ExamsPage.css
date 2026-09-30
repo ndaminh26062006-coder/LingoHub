@@ -177,9 +177,16 @@
     flex-wrap: wrap;
     gap: 16px;
   }
-  .filter-group { min-width: 180px; flex: 1; }
+  .filter-group { min-width: 160px; flex: 1; }
 }
 
 @media (max-width: 600px) {
-  .exams-filters { flex-direction: column; }
+  .exams-filters           { flex-direction: column; }
+  .exams-page__body        { padding: 20px 0 40px; }
+  .exam-list-card          { padding: 16px; }
+  .exam-list-card__title   { font-size: 15px; }
+  .exam-list-card__actions { flex-wrap: wrap; }
+  .exam-list-card__actions .btn { flex: 1; justify-content: center; }
+  /* iOS zoom fix */
+  .filter-search input     { font-size: 16px; }
 }

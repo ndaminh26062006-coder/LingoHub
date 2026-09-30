@@ -51,6 +51,16 @@ function ProfileDropdown({ user, onLogout }) {
 
           <div className="pd-divider" />
 
+          {user.role === 'admin' && (
+            <>
+              <Link to="/admin" className="pd-item" onClick={() => setOpen(false)}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                Trang quản trị
+              </Link>
+              <div className="pd-divider" />
+            </>
+          )}
+
           <Link to="/profile" className="pd-item" onClick={() => setOpen(false)}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Thông tin cá nhân

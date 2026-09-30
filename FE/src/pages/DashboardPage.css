@@ -179,13 +179,12 @@
 }
 
 .chart-guide-line {
-  flex: 1;
-  width: calc(100vw);
-  height: 1px;
-  background: var(--gray-100);
   position: absolute;
   left: 28px;
   right: 0;
+  height: 1px;
+  background: var(--gray-100);
+  /* was calc(100vw) which caused horizontal scroll — now uses absolute positioning */
 }
 
 /* Chart summary pills */
@@ -415,17 +414,36 @@
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
-  .db-stat-cards { grid-template-columns: repeat(2, 1fr); }
-  .db-main-grid  { grid-template-columns: 1fr; }
-  .db-bottom-grid { grid-template-columns: 1fr; }
-  .achievements-grid { grid-template-columns: repeat(4, 1fr); }
+  .db-stat-cards          { grid-template-columns: repeat(2, 1fr); }
+  .db-main-grid           { grid-template-columns: 1fr; }
+  .db-bottom-grid         { grid-template-columns: 1fr; }
+  .achievements-grid      { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Tablet: achievements go 3 col before cramping */
+@media (max-width: 860px) {
+  .achievements-grid      { grid-template-columns: repeat(3, 1fr); }
+  .db-body                { padding: 24px 0 48px; gap: 18px; }
+  .upsell-desc            { max-width: none; }
 }
 
 @media (max-width: 640px) {
-  .db-stat-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .achievements-grid { grid-template-columns: repeat(2, 1fr); }
-  .subj-row { grid-template-columns: 1fr 1fr; }
-  .subj-row__right { display: none; }
-  .chart-summary { grid-template-columns: repeat(2, 1fr); }
-  .upsell-banner { flex-direction: column; }
+  .db-stat-cards          { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .db-stat-card           { padding: 14px; }
+  .db-stat-card__icon     { width: 42px; height: 42px; font-size: 20px; }
+  .db-stat-value          { font-size: 20px; }
+  .achievements-grid      { grid-template-columns: repeat(2, 1fr); }
+  .subj-row               { grid-template-columns: 1fr 1fr; }
+  .subj-row__right        { display: none; }
+  .chart-summary          { grid-template-columns: repeat(2, 1fr); }
+  .upsell-banner          { flex-direction: column; }
+  .upsell-desc            { max-width: none; }
+  .recent-btn             { display: none; }
+  .db-card                { padding: 16px; }
+}
+
+@media (max-width: 420px) {
+  .db-stat-cards          { grid-template-columns: 1fr; }
+  .subj-row               { grid-template-columns: 1fr; }
+  .chart-summary          { grid-template-columns: 1fr 1fr; }
 }

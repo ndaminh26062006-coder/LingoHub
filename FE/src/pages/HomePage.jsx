@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { categories, featuredExams, examList } from '../data/mockData';
+import { categories, featuredExams } from '../data/mockData';
 import './HomePage.css';
 
 // ── Search Bar ────────────────────────────────────────────────────────────────
@@ -165,7 +165,134 @@ function ExamCard({ exam }) {
   );
 }
 
-// ── Stats Banner ──────────────────────────────────────────────────────────────
+// ── Leaderboard ──────────────────────────────────────────────────────────────
+const LEADERBOARD_DATA = {
+  streak: [
+    { rank: 1, name: 'Nguyễn Minh Tuấn',  school: 'ĐH Kinh tế TP.HCM',   value: '142 giờ',  avatar: 'MT', badge: '👑' },
+    { rank: 2, name: 'Trần Thị Lan Anh',  school: 'ĐH Bách Khoa HN',     value: '128 giờ',  avatar: 'LA', badge: '🥈' },
+    { rank: 3, name: 'Phạm Đức Hùng',     school: 'ĐH Ngoại Thương',     value: '115 giờ',  avatar: 'ĐH', badge: '🥉' },
+    { rank: 4, name: 'Lê Thị Thu Hà',     school: 'ĐH Luật TP.HCM',      value: '98 giờ',   avatar: 'TH', badge: null },
+    { rank: 5, name: 'Vũ Hoàng Nam',      school: 'ĐH CNTT TP.HCM',      value: '87 giờ',   avatar: 'HN', badge: null },
+    { rank: 6, name: 'Đặng Thị Bích Ngọc', school: 'ĐH Khoa học XH&NV',  value: '76 giờ',   avatar: 'BN', badge: null },
+    { rank: 7, name: 'Hoàng Văn Khánh',   school: 'ĐH Sư phạm TP.HCM',   value: '64 giờ',   avatar: 'VK', badge: null },
+  ],
+  accuracy: [
+    { rank: 1, name: 'Trần Thị Lan Anh',  school: 'ĐH Bách Khoa HN',     value: '97.4%',    avatar: 'LA', badge: '👑', sub: '214 câu đúng' },
+    { rank: 2, name: 'Nguyễn Minh Tuấn',  school: 'ĐH Kinh tế TP.HCM',   value: '95.8%',    avatar: 'MT', badge: '🥈', sub: '198 câu đúng' },
+    { rank: 3, name: 'Bùi Thị Thanh Mai', school: 'ĐH Y Dược TP.HCM',    value: '94.1%',    avatar: 'TM', badge: '🥉', sub: '176 câu đúng' },
+    { rank: 4, name: 'Lê Hoàng Phúc',     school: 'ĐH FPT',              value: '92.7%',    avatar: 'HP', badge: null, sub: '165 câu đúng' },
+    { rank: 5, name: 'Phạm Đức Hùng',     school: 'ĐH Ngoại Thương',     value: '91.3%',    avatar: 'ĐH', badge: null, sub: '158 câu đúng' },
+    { rank: 6, name: 'Ngô Thị Kim Dung',  school: 'ĐH Văn Lang',         value: '90.5%',    avatar: 'KD', badge: null, sub: '142 câu đúng' },
+    { rank: 7, name: 'Trịnh Văn Đạt',     school: 'ĐH Tôn Đức Thắng',   value: '89.8%',    avatar: 'VĐ', badge: null, sub: '137 câu đúng' },
+  ],
+  speed: [
+    { rank: 1, name: 'Lê Hoàng Phúc',     school: 'ĐH FPT',              value: '38 giây/câu', avatar: 'HP', badge: '👑', sub: 'Điểm TB: 9.2' },
+    { rank: 2, name: 'Vũ Hoàng Nam',      school: 'ĐH CNTT TP.HCM',      value: '42 giây/câu', avatar: 'HN', badge: '🥈', sub: 'Điểm TB: 8.8' },
+    { rank: 3, name: 'Nguyễn Minh Tuấn',  school: 'ĐH Kinh tế TP.HCM',   value: '45 giây/câu', avatar: 'MT', badge: '🥉', sub: 'Điểm TB: 9.0' },
+    { rank: 4, name: 'Trần Thị Lan Anh',  school: 'ĐH Bách Khoa HN',     value: '48 giây/câu', avatar: 'LA', badge: null, sub: 'Điểm TB: 9.5' },
+    { rank: 5, name: 'Hoàng Văn Khánh',   school: 'ĐH Sư phạm TP.HCM',   value: '51 giây/câu', avatar: 'VK', badge: null, sub: 'Điểm TB: 8.4' },
+    { rank: 6, name: 'Phạm Đức Hùng',     school: 'ĐH Ngoại Thương',     value: '54 giây/câu', avatar: 'ĐH', badge: null, sub: 'Điểm TB: 8.1' },
+    { rank: 7, name: 'Bùi Thị Thanh Mai', school: 'ĐH Y Dược TP.HCM',    value: '56 giây/câu', avatar: 'TM', badge: null, sub: 'Điểm TB: 8.7' },
+  ],
+};
+
+const TABS = [
+  { id: 'streak',   label: 'Học lâu nhất',    icon: '🔥' },
+  { id: 'accuracy', label: 'Điểm cao nhất',   icon: '🎯' },
+  { id: 'speed',    label: 'Nhanh nhất',       icon: '⚡' },
+];
+
+const RANK_COLORS = {
+  1: { bg: 'linear-gradient(135deg,#FFD700,#FFA500)', text: '#7a4a00', ring: '#FFD700' },
+  2: { bg: 'linear-gradient(135deg,#C0C0C0,#A8A8A8)', text: '#444',   ring: '#C0C0C0' },
+  3: { bg: 'linear-gradient(135deg,#CD7F32,#A0522D)', text: '#fff',   ring: '#CD7F32' },
+};
+
+function Leaderboard() {
+  const [activeTab, setActiveTab] = useState('streak');
+  const rows = LEADERBOARD_DATA[activeTab];
+
+  return (
+    <section className="section section--gray">
+      <div className="container">
+        <div className="section__header">
+          <div>
+            <h2 className="section__title">🏆 Bảng xếp hạng</h2>
+            <p className="section__subtitle">Top sinh viên nổi bật trong tuần này</p>
+          </div>
+          <span className="lb-refresh-hint">🔄 Cập nhật hàng tuần</span>
+        </div>
+
+        {/* Tabs */}
+        <div className="lb-tabs">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              className={`lb-tab ${activeTab === t.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              <span>{t.icon}</span> {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Top 3 podium */}
+        <div className="lb-podium">
+          {/* 2nd */}
+          <div className="podium-item podium-item--2">
+            <div className="podium-avatar" style={{ background: RANK_COLORS[2].bg, boxShadow: `0 0 0 3px ${RANK_COLORS[2].ring}` }}>
+              {rows[1].avatar}
+            </div>
+            <div className="podium-name">{rows[1].name.split(' ').pop()}</div>
+            <div className="podium-value">{rows[1].value}</div>
+            <div className="podium-stand podium-stand--2">
+              <span className="podium-rank">🥈</span>
+            </div>
+          </div>
+          {/* 1st */}
+          <div className="podium-item podium-item--1">
+            <div className="podium-crown">👑</div>
+            <div className="podium-avatar podium-avatar--1" style={{ background: RANK_COLORS[1].bg, boxShadow: `0 0 0 4px ${RANK_COLORS[1].ring}` }}>
+              {rows[0].avatar}
+            </div>
+            <div className="podium-name podium-name--1">{rows[0].name.split(' ').pop()}</div>
+            <div className="podium-value podium-value--1">{rows[0].value}</div>
+            <div className="podium-stand podium-stand--1">
+              <span className="podium-rank">🥇</span>
+            </div>
+          </div>
+          {/* 3rd */}
+          <div className="podium-item podium-item--3">
+            <div className="podium-avatar" style={{ background: RANK_COLORS[3].bg, boxShadow: `0 0 0 3px ${RANK_COLORS[3].ring}` }}>
+              {rows[2].avatar}
+            </div>
+            <div className="podium-name">{rows[2].name.split(' ').pop()}</div>
+            <div className="podium-value">{rows[2].value}</div>
+            <div className="podium-stand podium-stand--3">
+              <span className="podium-rank">🥉</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rows 4–7 */}
+        <div className="lb-list">
+          {rows.slice(3).map(row => (
+            <div key={row.rank} className="lb-row">
+              <span className="lb-row__rank">{row.rank}</span>
+              <div className="lb-row__avatar">{row.avatar}</div>
+              <div className="lb-row__info">
+                <span className="lb-row__name">{row.name}</span>
+                <span className="lb-row__school">{row.school}</span>
+              </div>
+              {row.sub && <span className="lb-row__sub">{row.sub}</span>}
+              <span className="lb-row__value">{row.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 function StatsBanner() {
   const stats = [
     { value: '10,000+', label: 'Câu hỏi', icon: '❓' },
@@ -274,6 +401,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Leaderboard ── */}
+      <Leaderboard />
 
       {/* ── CTA Banner ── */}
       <section className="container">

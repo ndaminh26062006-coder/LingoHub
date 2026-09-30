@@ -132,5 +132,17 @@
 }
 
 @media (max-width: 640px) {
-  .cats-block__header { flex-direction: column; align-items: flex-start; }
+  .cats-block__header      { flex-direction: column; align-items: flex-start; }
+  .cats-block              { padding: 18px 16px; }
+  .cats-block__meta        { min-width: 0; }
+  .cats-page__content      { padding: 24px 0 40px; gap: 16px; }
+  .cat-detail__subjects    { padding: 24px 0 40px; }
+  .section__title          { font-size: 22px; }
+}
+
+@media (max-width: 480px) {
+  /* Subject card: stack vertically on narrow phones */
+  .subject-card            { flex-wrap: wrap; gap: 12px; padding: 14px 16px; }
+  .subject-card__info      { min-width: 0; flex: 1 1 100%; order: 2; }
+  .subject-card .btn       { width: 100%; justify-content: center; order: 3; }
 }
