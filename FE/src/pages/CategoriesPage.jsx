@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { documentApi, subjectApi, categoryApi, toArray } from '../services/api';
+import { documentApi, subjectApi, categoryApi, toArray, subscriptionApi } from '../services/api';
 import useFreemium from '../hooks/useFreemium';
 import PageHeader from '../components/PageHeader';
 import QuickLikeWidget from '../components/QuickLikeWidget';
@@ -84,16 +84,9 @@ export default function CategoriesPage() {
       const token = localStorage.getItem('lh_token');
       if (token && selectedSubject?.id) {
         try {
-          const response = await fetch('http://localhost:8000/api/subscriptions/check-subject', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ subject_id: selectedSubject.id }),
-          });
+          const response = await subscriptionApi.checkSubject({ subject_id: selectedSubject.id });
           
-          const data = await response.json();
+          const data = response.data;
           if (!data.has_access) {
             setAccessDeniedOpen(true);
             return;

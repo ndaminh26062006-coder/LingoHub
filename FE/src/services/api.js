@@ -4,7 +4,8 @@ import axios from 'axios';
 // Axios instance
 // ─────────────────────────────────────────────────────────────────────────────
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  // baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.lingohub.io.vn/api',
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
   withCredentials: true,
 });
@@ -147,12 +148,55 @@ export const paymentApi = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LIKES
+// ─────────────────────────────────────────────────────────────────────────────
+export const likeApi = {
+  getStats: (type, id) => api.get(`/likes/stats/${type}/${id}`),
+  store: data => api.post('/likes', data),
+  destroy: id => api.delete(`/likes/${id}`),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+export const commentApi = {
+  list: (type, id) => api.get(`/comments/${type}/${id}`),
+  get: id => api.get(`/comments/${id}`),
+  store: data => api.post('/comments', data),
+  update: (id, data) => api.put(`/comments/${id}`, data),
+  destroy: id => api.delete(`/comments/${id}`),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FREEMIUM
+// ─────────────────────────────────────────────────────────────────────────────
+export const freemiumApi = {
+  checkAccess: data => api.post('/freemium/check-access', data),
+  getPricing: () => api.get('/freemium/pricing'),
+  getUsageStats: data => api.post('/freemium/usage-stats', data),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATS
+// ─────────────────────────────────────────────────────────────────────────────
+export const statsApi = {
+  getDashboard: () => api.get('/stats/dashboard'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SUBSCRIPTIONS
 // ─────────────────────────────────────────────────────────────────────────────
 export const subscriptionApi = {
   me:              ()   => api.get('/subscriptions/me'),
   checkSubject:    data => api.post('/subscriptions/check-subject', data),
   history:         ()   => api.get('/subscriptions/history'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEADERBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+export const leaderboardApi = {
+  get: params => api.get('/leaderboard', { params }),
 };
 export const adminApi = {
   // Dashboard

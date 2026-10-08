@@ -1,98 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import '../styles/LikeButton.css';
+import { useState, useEffect } from 'react';
+import { likeApi } from '../services/api';
 
-/**
- * LikeButton - Like/Dislike button for any item
- * 
- * Props:
- * - likeableType: 'Document' | 'Exam' | 'EssayQuestion' | 'FlashcardDeck'
- * - likeableId: number
- * - onLikesChange: callback when likes/dislikes change (optional)
- */
-export default function LikeButton({ likeableType, likeableId, onLikesChange }) {
+export default function LikeButton({ likeableType, likeableId, onLiked }) {
   const [likes, setLikes] = useState(0);
-  const [dislikes, setDislikes] = useState(0);
-  const [userLike, setUserLike] = useState(null); // null, true (👍), or false (👎)
-  const [loading, setLoading] = useState(true);
-  const [voting, setVoting] = useState(false);
+  const [userLike, setUserLike] = useState(null);
+  const [loading, setLoading] = useState(false);
   const token = localStorage.getItem('lh_token');
 
-  // Load stats on mount
   useEffect(() => {
-    loadStats();
+    fetchLikes();
   }, [likeableType, likeableId]);
 
-  const loadStats = async () => {
+  const fetchLikes = async () => {
+    try {
+      const response = await likeApi.getStats(likeableType, likeableId);
+      setLikes(response.data.likes);
+      setUserLike(response.data.user_like);
+    } catch (err) {
+      console.error('Failed to fetch likes:', err);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!token) {
+      alert('Vui lòng đăng nhập để like');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/likes/stats/${likeableType}/${likeableId}`
-      );
-      setLikes(response.data.likes);
-      setDislikes(response.data.dislikes);
-      setUserLike(response.data.user_like?.is_liked ?? null);
+      if (userLike?.is_liked) {
+        await likeApi.destroy(userLike.id);
+        setLikes(likes - 1);
+        setUserLike(null);
+      } else {
+        const response = await likeApi.store({
+          likeable_type: likeableType,
+          likeable_id: likeableId,
+          is_liked: true
+        });
+        if (response.data.voted) {
+          setLikes(likes + 1);
+          setUserLike({ id: response.data.id, is_liked: true });
+        }
+      }
+      onLiked?.();
     } catch (err) {
-      console.error('Failed to load likes:', err);
+      console.error('Failed to toggle like:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVote = async (isLiked) => {
-    if (!token) {
-      alert('Vui lòng đăng nhập để thích/không thích');
-      return;
-    }
-
-    setVoting(true);
-    try {
-      const response = await axios.post(
-        'http://localhost:8000/api/likes',
-        {
-          likeable_type: likeableType,
-          likeable_id: likeableId,
-          is_liked: isLiked,
-        },
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-
-      // Reload stats after vote
-      await loadStats();
-      onLikesChange?.();
-    } catch (err) {
-      console.error('Failed to vote:', err);
-      alert('Lỗi: ' + (err.response?.data?.message || 'Không thể đánh giá'));
-    } finally {
-      setVoting(false);
-    }
-  };
-
-  if (loading) {
-    return <div className="like-button-loading"></div>;
-  }
-
   return (
-    <div className="like-button">
-      {/* Like button */}
-      <button
-        className={`like-btn ${userLike === true ? 'active' : ''}`}
-        onClick={() => handleVote(true)}
-        disabled={voting}
-        title="Thích"
-      >
-        👍 <span className="like-count">{likes}</span>
-      </button>
-
-      {/* Dislike button */}
-      <button
-        className={`dislike-btn ${userLike === false ? 'active' : ''}`}
-        onClick={() => handleVote(false)}
-        disabled={voting}
-        title="Không thích"
-      >
-        👎 <span className="dislike-count">{dislikes}</span>
-      </button>
-    </div>
+    <button
+      className={`like-button ${userLike?.is_liked ? 'liked' : ''}`}
+      onClick={handleLike}
+      disabled={loading || !token}
+      title={token ? 'Like' : 'Đăng nhập để like'}
+    >
+      👍 {likes}
+    </button>
   );
 }

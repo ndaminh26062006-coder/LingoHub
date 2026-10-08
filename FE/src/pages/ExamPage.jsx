@@ -153,7 +153,7 @@ function ExamQuestion({ question, selected, onSelect, isBookmarked, onBookmark }
             onClick={onBookmark}
             title={isBookmarked ? 'Bỏ đánh dấu' : 'Đánh dấu câu này'}
           >
-            {isBookmarked ? '🔖' : '🏷️'}
+            {isBookmarked ? '' : ''}
             <span>{isBookmarked ? 'Bỏ đánh dấu' : 'Đánh dấu'}</span>
           </button>
         </div>
@@ -177,7 +177,7 @@ function ExamQuestion({ question, selected, onSelect, isBookmarked, onBookmark }
       ) : (
         <div>
           <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px', color: '#666', fontSize: '13px', marginBottom: '12px' }}>
-            {question.type === 'essay' ? '✍️ Câu hỏi tự luận' : question.type === 'scenario' ? '🎭 Câu hỏi tình huống' : 'Câu hỏi'}
+            {question.type === 'essay' ? 'Câu hỏi tự luận' : question.type === 'scenario' ? '🎭 Câu hỏi tình huống' : 'Câu hỏi'}
           </div>
           <textarea
             style={{
@@ -428,19 +428,10 @@ export default function ExamPage() {
             }
             
             // Check if user has access to this subject
-            const response = await fetch('http://localhost:8000/api/subscriptions/check-subject', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ subject_id: res.data.subject_id }),
-            });
+            const checkResponse = await subscriptionApi.checkSubject(res.data.subject_id);
+            console.log('Subject access check response:', checkResponse.data);
             
-            const data = await response.json();
-            console.log('Subject access check response:', data);
-            
-            if (!data.has_access) {
+            if (!checkResponse.data.has_access) {
               console.log('Access DENIED');
               setAccessDenied(true);
               setLoadingQ(false);

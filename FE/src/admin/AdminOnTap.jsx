@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { categoryApi, subjectApi, adminApi, toArray } from '../services/api';
+import { categoryApi, subjectApi, adminApi, documentApi, toArray } from '../services/api';
 import ImportQuestionsModal from './ImportQuestionsModal';
 import './AdminLayout.css';
 import './AdminOnTap.css';
@@ -462,10 +462,7 @@ export default function AdminOnTap() {
     setLoading(true);
     Promise.all([
       categoryApi.list().then(r => toArray(r.data)),
-      // dùng adminApi token để lấy toàn bộ documents kể cả draft
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/documents?per_page=100`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('lh_token')}`, Accept: 'application/json' }
-      }).then(r => r.json()).then(d => d.data || []),
+      documentApi.list({ per_page: 100 }).then(r => toArray(r.data)),
     ])
       .then(([cats, docs]) => { setCategories(cats); setExams(docs); })
       .catch(() => {})

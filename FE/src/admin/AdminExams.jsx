@@ -847,9 +847,7 @@ export default function AdminExams() {
     setLoading(true);
     Promise.all([
       categoryApi.list().then(r => toArray(r.data)),
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/admin/exams?per_page=100`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('lh_token')}`, Accept: 'application/json' }
-      }).then(r => r.json()).then(d => d.data || []),
+      adminApi.getExams({ per_page: 100 }).then(r => toArray(r.data)),
     ])
       .then(([cats, exs]) => { setCategories(cats); setExams(exs); })
       .catch(() => {})

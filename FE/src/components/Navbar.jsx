@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png-removebg-preview.png';
 import { useAuth } from '../context/AuthContext';
+import { subscriptionApi } from '../services/api';
 import PaymentModal from './PaymentModal';
 import './Navbar.css';
 
@@ -69,22 +70,9 @@ function ProfileDropdown({ user, onLogout }) {
 
         console.log('Fetching subscription with token:', token.substring(0, 20) + '...');
 
-        const response = await fetch('http://localhost:8000/api/subscriptions/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        console.log('Subscription API response status:', response.status);
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Subscription API response data:', data);
-          if (data.has_subscription && data.subscription) {
-            console.log('Setting subscription:', data.subscription);
-            setSubscription(data.subscription);
-          }
-        } else {
-          console.log('Subscription API error:', response.status);
-        }
+        const response = await subscriptionApi.me();
+        const data = response.data;
+        const subscription = data.subscription;
       } catch (err) {
         console.error('Failed to fetch subscription:', err);
       }
@@ -174,21 +162,12 @@ function ProfileDropdown({ user, onLogout }) {
                 return;
               }
               
-              const response = await fetch('http://localhost:8000/api/subscriptions/me', {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              
-              console.log('Subscription fetch after payment status:', response.status);
-              
-              if (response.ok) {
-                const data = await response.json();
-                console.log('Subscription data after payment:', data);
-                if (data.has_subscription && data.subscription) {
-                  console.log('Setting subscription:', data.subscription);
-                  setSubscription(data.subscription);
-                }
-              } else {
-                console.log('Subscription fetch failed:', response.status);
+              const response = await subscriptionApi.me();
+              const data = response.data;
+              console.log('Subscription data after payment:', data);
+              if (data.has_subscription && data.subscription) {
+                console.log('Setting subscription:', data.subscription);
+                setSubscription(data.subscription);
               }
             } catch (err) {
               console.error('Failed to fetch subscription after payment:', err);

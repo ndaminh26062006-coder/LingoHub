@@ -82,10 +82,10 @@ export default function RegisterPage() {
           </p>
           <div className="auth-panel__features">
             {[
-              { icon: '✅', text: 'Hoàn toàn miễn phí' },
-              { icon: '📱', text: 'Học mọi lúc, mọi nơi' },
-              { icon: '🎯', text: '3 khối ngành, 500+ đề thi' },
-              { icon: '📈', text: 'Lịch sử & thống kê kết quả' },
+              { icon: '', text: 'Hoàn toàn miễn phí' },
+              { icon: '', text: 'Học mọi lúc, mọi nơi' },
+              { icon: '', text: '3 khối ngành, 500+ đề thi' },
+              { icon: '', text: 'Lịch sử & thống kê kết quả' },
             ].map(f => (
               <div key={f.text} className="auth-feature">
                 <span className="auth-feature__icon">{f.icon}</span>

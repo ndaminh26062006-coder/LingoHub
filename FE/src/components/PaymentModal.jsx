@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { subjectApi, paymentApi, subscriptionApi } from '../services/api';
 import '../styles/PaymentModal.css';
 
 export default function PaymentModal({ isOpen, onClose, onSuccess }) {
@@ -88,26 +88,23 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
   ];
 
   const token = localStorage.getItem('lh_token');
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
   // Load subjects when modal opens
   useEffect(() => {
     if (!isOpen) return;
     
     setLoadingSubjects(true);
-    axios.get(`${apiUrl}/subjects`, {
-      headers: { Accept: 'application/json' }
-    })
-    .then(res => {
-      const subjects = res.data.data || res.data || [];
-      setAllSubjects(Array.isArray(subjects) ? subjects : []);
-    })
-    .catch(err => {
-      // Silently fail - subjects are optional for payment
-      setAllSubjects([]);
-    })
-    .finally(() => setLoadingSubjects(false));
-  }, [isOpen, apiUrl]);
+    subjectApi.list()
+      .then(res => {
+        const subjects = res.data.data || res.data || [];
+        setAllSubjects(Array.isArray(subjects) ? subjects : []);
+      })
+      .catch(err => {
+        // Silently fail - subjects are optional for payment
+        setAllSubjects([]);
+      })
+      .finally(() => setLoadingSubjects(false));
+  }, [isOpen]);
 
   // Request payment QR
   const handleRequestPayment = async () => {
@@ -120,11 +117,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
     setError('');
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/payments/sepay/create`,
-        { plan: selectedPlan },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await paymentApi.createPayment(selectedPlan);
 
       if (response.data.success) {
         setQrUrl(response.data.checkout_url);
@@ -156,10 +149,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
   const pollPaymentStatus = (refCode) => {
     const pollInterval = setInterval(async () => {
       try {
-        const response = await axios.get(
-          `${apiUrl}/payments/sepay/status/${refCode}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const response = await paymentApi.getStatus(refCode);
 
         if (response.data.status === 'success') {
           clearInterval(pollInterval);
@@ -191,10 +181,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
 
     setCheckingStatus(true);
     try {
-      const response = await axios.get(
-        `${apiUrl}/payments/sepay/status/${referenceCode}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await paymentApi.getStatus(referenceCode);
 
       if (response.data.status === 'success') {
         setStep('done');
@@ -236,11 +223,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
     setLoading(true);
     try {
       // Update subscription with selected subjects
-      await axios.post(
-        `${apiUrl}/subscriptions/update-subjects`,
-        { subjects: selectedSubjects },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await subscriptionApi.updateSubjects(selectedSubjects);
 
       onSuccess();
       handleClose();

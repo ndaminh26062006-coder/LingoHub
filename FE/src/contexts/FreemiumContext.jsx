@@ -56,7 +56,7 @@ export function FreemiumProvider({ children }) {
    */
   const loadPricing = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/freemium/pricing');
+      const response = await freemiumApi.getPricing();
       setPricing(response.data);
     } catch (err) {
       console.error('Failed to load pricing:', err);
@@ -75,10 +75,7 @@ export function FreemiumProvider({ children }) {
     }
 
     try {
-      const response = await axios.get('http://localhost:8000/api/subscriptions/me', {
-        headers: { 'Authorization': `Bearer ${token}` },
-        validateStatus: () => true // Don't throw on any status code
-      });
+      const response = await subscriptionApi.me();
       
       if (response.status === 200 && response.data.has_subscription) {
         setSubscription(response.data.subscription);
@@ -86,7 +83,6 @@ export function FreemiumProvider({ children }) {
         setSubscription(null);
       }
     } catch (err) {
-      // Catch any other errors (network issues, etc.)
       setSubscription(null);
     }
   }, []);
@@ -108,12 +104,9 @@ export function FreemiumProvider({ children }) {
       const token = localStorage.getItem('lh_token');
       console.log('🔍 checkAccess:', { feature, hasToken: !!token, subscription });
       
-      const response = await axios.post('http://localhost:8000/api/freemium/check-access', {
+      const response = await freemiumApi.checkAccess({
         feature,
         device_id: deviceId,
-      }, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        validateStatus: (status) => status < 500 // Don't treat any status as error unless it's 5xx
       });
 
       console.log('✅ checkAccess response:', { status: response.status, data: response.data });
@@ -171,7 +164,7 @@ export function FreemiumProvider({ children }) {
     if (!deviceId) return;
 
     try {
-      const response = await axios.post('http://localhost:8000/api/freemium/usage-stats', {
+      const response = await freemiumApi.getUsageStats({
         device_id: deviceId,
       });
       setUsageStats(response.data.stats);
@@ -188,9 +181,7 @@ export function FreemiumProvider({ children }) {
 
     try {
       const token = localStorage.getItem('lh_token');
-      await axios.delete(`http://localhost:8000/api/admin/freemium/reset/${deviceId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await freemiumApi.resetUsage(deviceId);
       setUsageStats(null);
       await loadUsageStats();
       return true;
@@ -242,12 +233,7 @@ export function FreemiumProvider({ children }) {
    */
   const canAccessSubject = useCallback(async (subjectId) => {
     try {
-      const token = localStorage.getItem('lh_token');
-      const response = await axios.post('http://localhost:8000/api/subscriptions/check-subject', {
-        subject_id: subjectId,
-      }, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
+      const response = await subscriptionApi.checkSubject(subjectId);
       return response.data.has_access;
     } catch (err) {
       console.error('Failed to check subject access:', err);

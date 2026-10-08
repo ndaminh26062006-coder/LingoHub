@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { commentApi } from '../services/api';
 import '../styles/CommentsModal.css';
 
 /**
@@ -32,9 +32,7 @@ export default function CommentsModal({ isOpen, onClose, commentableType, commen
   const loadComments = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/comments/${commentableType}/${commentableId}`
-      );
+      const response = await commentApi.list(commentableType, commentableId);
       setComments(response.data);
     } catch (err) {
       console.error('Failed to load comments:', err);
@@ -58,15 +56,11 @@ export default function CommentsModal({ isOpen, onClose, commentableType, commen
 
     setSubmitting(true);
     try {
-      const response = await axios.post(
-        'http://localhost:8000/api/comments',
-        {
-          commentable_type: commentableType,
-          commentable_id: commentableId,
-          content: newComment,
-        },
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
+      const response = await commentApi.store({
+        commentable_type: commentableType,
+        commentable_id: commentableId,
+        content: newComment,
+      });
 
       setComments([response.data, ...comments]);
       setNewComment('');
@@ -82,10 +76,7 @@ export default function CommentsModal({ isOpen, onClose, commentableType, commen
     if (!confirm('Xóa bình luận này?')) return;
 
     try {
-      await axios.delete(
-        `http://localhost:8000/api/comments/${commentId}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
+      await commentApi.destroy(commentId);
       setComments(comments.filter(c => c.id !== commentId));
     } catch (err) {
       console.error('Failed to delete comment:', err);

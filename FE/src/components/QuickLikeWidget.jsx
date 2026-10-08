@@ -1,111 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import '../styles/QuickLikeWidget.css';
+import { useState, useEffect } from 'react';
+import { likeApi, commentApi } from '../services/api';
 
-/**
- * QuickLikeWidget - Compact like/dislike + view comments button for list cards
- * 
- * Props:
- * - likeableType: 'Document' | 'Exam' | 'EssayQuestion' | 'FlashcardDeck'
- * - likeableId: number
- * - onViewComments: callback to open comments modal
- */
 export default function QuickLikeWidget({ likeableType, likeableId, onViewComments }) {
   const [likes, setLikes] = useState(0);
-  const [dislikes, setDislikes] = useState(0);
   const [userLike, setUserLike] = useState(null);
   const [commentCount, setCommentCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [voting, setVoting] = useState(false);
   const token = localStorage.getItem('lh_token');
 
   useEffect(() => {
-    loadStats();
-    loadCommentCount();
+    fetchLikes();
+    fetchComments();
   }, [likeableType, likeableId]);
 
-  const loadStats = async () => {
-    setLoading(true);
+  const fetchLikes = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/likes/stats/${likeableType}/${likeableId}`
-      );
+      const response = await likeApi.getStats(likeableType, likeableId);
       setLikes(response.data.likes);
-      setDislikes(response.data.dislikes);
-      setUserLike(response.data.user_like?.is_liked ?? null);
+      setUserLike(response.data.user_like);
     } catch (err) {
-      console.error('Failed to load likes:', err);
-    } finally {
-      setLoading(false);
+      console.error('Failed to fetch likes:', err);
     }
   };
 
-  const loadCommentCount = async () => {
+  const fetchComments = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/comments/${likeableType}/${likeableId}`
-      );
+      const response = await commentApi.list(likeableType, likeableId);
       setCommentCount(Array.isArray(response.data) ? response.data.length : 0);
     } catch (err) {
-      console.error('Failed to load comment count:', err);
+      console.error('Failed to fetch comments:', err);
     }
   };
 
-  const handleVote = async (isLiked) => {
+  const handleLike = async () => {
     if (!token) {
-      alert('Vui lòng đăng nhập');
+      alert('Vui lòng đăng nhập để like');
       return;
     }
 
-    setVoting(true);
     try {
-      await axios.post(
-        'http://localhost:8000/api/likes',
-        {
-          likeable_type: likeableType,
-          likeable_id: likeableId,
-          is_liked: isLiked,
-        },
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-      await loadStats();
+      await likeApi.store({
+        likeable_type: likeableType,
+        likeable_id: likeableId,
+        is_liked: true
+      });
+      onViewComments?.();
+      fetchLikes();
     } catch (err) {
-      console.error('Failed to vote:', err);
-    } finally {
-      setVoting(false);
+      console.error('Failed to like:', err);
     }
   };
 
-  if (loading) {
-    return <div className="quick-like-widget"></div>;
-  }
-
   return (
     <div className="quick-like-widget">
-      <button
-        className={`quick-like-btn ${userLike === true ? 'active' : ''}`}
-        onClick={() => handleVote(true)}
-        disabled={voting}
-        title="Thích"
+      <button 
+        className={`like-btn ${userLike?.is_liked ? 'liked' : ''}`}
+        onClick={handleLike}
+        title="Like"
       >
         👍 {likes}
       </button>
-
-      <button
-        className={`quick-dislike-btn ${userLike === false ? 'active' : ''}`}
-        onClick={() => handleVote(false)}
-        disabled={voting}
-        title="Không thích"
-      >
-        👎 {dislikes}
-      </button>
-
-      <button
-        className="quick-comments-btn"
+      <button 
+        className="comment-btn"
         onClick={onViewComments}
         title="Xem bình luận"
       >
-        💬 Bình luận ({commentCount})
+        💬 {commentCount}
       </button>
     </div>
   );

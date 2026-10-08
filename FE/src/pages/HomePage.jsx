@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { categoryApi, examApi, subjectApi, toArray } from '../services/api';
+import { categoryApi, examApi, subjectApi, toArray, likeApi, statsApi, leaderboardApi } from '../services/api';
 import useFreemium from '../hooks/useFreemium';
 import AccessDeniedModal from '../components/AccessDeniedModal';
 import './HomePage.css';
@@ -123,7 +122,7 @@ function ExamCard({ exam }) {
   useEffect(() => {
     const fetchLikes = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/likes/stats/Exam/${exam.id}`);
+        const response = await likeApi.getStats('Exam', exam.id);
         setLikes(response.data.likes);
         setUserLike(response.data.user_like);
       } catch (err) {
@@ -137,31 +136,24 @@ function ExamCard({ exam }) {
 
   const handleLike = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('lh_token');
       if (!token) {
-        // Show login prompt
         alert('Vui lòng đăng nhập để like');
         return;
       }
 
       if (userLike?.is_liked) {
         // Unlike
-        await axios.delete(`http://localhost:8000/api/likes/${userLike.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await likeApi.destroy(userLike.id);
         setLikes(likes - 1);
         setUserLike(null);
       } else {
         // Like
-        const response = await axios.post(
-          `http://localhost:8000/api/likes`,
-          {
-            likeable_type: 'Exam',
-            likeable_id: exam.id,
-            is_liked: true
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const response = await likeApi.store({
+          likeable_type: 'Exam',
+          likeable_id: exam.id,
+          is_liked: true
+        });
         if (response.data.voted) {
           setLikes(likes + 1);
           setUserLike({ id: response.data.id, is_liked: true });
@@ -179,17 +171,8 @@ function ExamCard({ exam }) {
       const token = localStorage.getItem('lh_token');
       if (token && exam.subject_model?.id) {
         try {
-          const response = await fetch('http://localhost:8000/api/subscriptions/check-subject', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ subject_id: exam.subject_model.id }),
-          });
-          
-          const data = await response.json();
-          if (!data.has_access) {
+          const response = await subscriptionApi.checkSubject({ subject_id: exam.subject_model.id });
+          if (!response.data.has_access) {
             setAccessDeniedOpen(true);
             return;
           }
@@ -285,16 +268,13 @@ function Leaderboard() {
         const data = {};
 
         for (const type of rankingTypes) {
-          const response = await axios.get(
-            `http://localhost:8000/api/leaderboard?ranking_type=${type}&period=week&limit=7`
-          );
+          const response = await leaderboardApi.get({ ranking_type: type, period: 'week', limit: 7 });
           data[type] = response.data.data || [];
         }
 
         setLeaderboardData(data);
       } catch (err) {
         console.error('Failed to fetch leaderboard:', err);
-        // Keep empty data on error
       } finally {
         setLoading(false);
       }
@@ -406,7 +386,7 @@ function StatsBanner() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/stats/dashboard');
+        const response = await statsApi.getDashboard();
         
         setStats([
           { value: response.data.questions, label: 'Câu hỏi', icon: '' },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { paymentApi } from '../services/api';
 import '../styles/PaymentHistory.css';
 
 export default function PaymentHistoryPage() {
@@ -14,33 +14,27 @@ export default function PaymentHistoryPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  const token = localStorage.getItem('lh_token');
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-
   // Fetch transactions
-  const fetchTransactions = (page = 1) => {
+  const fetchTransactions = async (page = 1) => {
     setLoading(true);
     setError('');
 
-    const params = { page };
-    if (fromDate) params.from_date = fromDate;
-    if (toDate) params.to_date = toDate;
+    try {
+      const params = { page };
+      if (fromDate) params.from_date = fromDate;
+      if (toDate) params.to_date = toDate;
 
-    axios.get(`${apiUrl}/payments/history`, {
-      headers: { Authorization: `Bearer ${token}` },
-      params,
-    })
-    .then(res => {
-      setTransactions(res.data.transactions || []);
-      setCurrentPage(res.data.current_page);
-      setLastPage(res.data.last_page);
-      setTotal(res.data.total);
-    })
-    .catch(err => {
+      const response = await paymentApi.getHistory(params);
+      setTransactions(response.data.transactions || []);
+      setCurrentPage(response.data.current_page);
+      setLastPage(response.data.last_page);
+      setTotal(response.data.total);
+    } catch (err) {
       setError(err.response?.data?.error || 'Lỗi khi tải lịch sử giao dịch');
       setTransactions([]);
-    })
-    .finally(() => setLoading(false));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { paymentApi } from '../services/api';
 import useFreemium from '../hooks/useFreemium';
 import './PaymentCallbackPage.css';
 
@@ -39,22 +40,9 @@ export default function PaymentCallbackPage() {
         }
 
         // Verify payment status with backend
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/payments/sepay/status/${referenceCode}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('lh_token')}`,
-            },
-          }
-        );
+        const payment = await paymentApi.getStatus(referenceCode);
 
-        if (!response.ok) {
-          throw new Error('Failed to verify payment');
-        }
-
-        const payment = await response.json();
-
-        if (payment.status === 'success') {
+        if (payment.data.status === 'success') {
           setStatus('success');
           setMessage('🎉 Payment successful! Your subscription is now active.');
           setDetails({
@@ -69,7 +57,7 @@ export default function PaymentCallbackPage() {
           setStatus('pending');
           setMessage('Payment is pending. Please wait...');
           setDetails({ reference_code: referenceCode });
-        } else if (payment.status === 'failed') {
+        } else if (payment.data.status === 'failed') {
           setStatus('failed');
           setMessage('Payment failed. Please try again.');
           setDetails({ reference_code: referenceCode });
