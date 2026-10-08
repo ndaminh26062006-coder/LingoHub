@@ -428,7 +428,7 @@ export default function ExamPage() {
             }
             
             // Check if user has access to this subject
-            const checkResponse = await subscriptionApi.checkSubject(res.data.subject_id);
+            const checkResponse = await subscriptionApi.checkSubject({ subject_id: res.data.subject_id });
             console.log('Subject access check response:', checkResponse.data);
             
             if (!checkResponse.data.has_access) {

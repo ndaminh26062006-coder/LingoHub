@@ -233,7 +233,7 @@ export function FreemiumProvider({ children }) {
    */
   const canAccessSubject = useCallback(async (subjectId) => {
     try {
-      const response = await subscriptionApi.checkSubject(subjectId);
+      const response = await subscriptionApi.checkSubject({ subject_id: subjectId });
       return response.data.has_access;
     } catch (err) {
       console.error('Failed to check subject access:', err);
