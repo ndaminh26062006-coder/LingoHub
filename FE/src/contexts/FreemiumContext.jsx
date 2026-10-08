@@ -1,7 +1,7 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import { useDeviceId, getDeviceIdSync } from '../hooks/useDeviceId';
+import { subscriptionApi, freemiumApi, paymentApi } from '../services/api';
 import PaymentModal from '../components/PaymentModal';
-import axios from 'axios';
 
 export const FreemiumContext = createContext();
 
