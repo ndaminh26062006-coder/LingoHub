@@ -117,7 +117,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
     setError('');
 
     try {
-      const response = await paymentApi.create(selectedPlan);
+      const response = await paymentApi.create({ plan: selectedPlan });
 
       if (response.data.success) {
         setQrUrl(response.data.checkout_url);
