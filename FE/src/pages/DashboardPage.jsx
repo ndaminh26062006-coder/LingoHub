@@ -1,50 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { dashboardApi } from '../services/api';
 import PageHeader from '../components/PageHeader';
 import './DashboardPage.css';
-
-// ── Mock data ──────────────────────────────────────────────────────────────────
-const SCORE_HISTORY = [
-  { label: 'T2', score: 5.5, date: '20/5' },
-  { label: 'T3', score: 6.0, date: '21/5' },
-  { label: 'T4', score: 5.0, date: '22/5' },
-  { label: 'T5', score: 7.0, date: '23/5' },
-  { label: 'T6', score: 6.5, date: '24/5' },
-  { label: 'T7', score: 7.5, date: '25/5' },
-  { label: 'CN', score: 8.0, date: '26/5' },
-  { label: 'T2', score: 7.0, date: '27/5' },
-  { label: 'T3', score: 8.5, date: '28/5' },
-  { label: 'T4', score: 7.5, date: '29/5' },
-  { label: 'T5', score: 9.0, date: '30/5' },
-  { label: 'T6', score: 8.0, date: '31/5' },
-  { label: 'T7', score: 8.5, date: '1/6' },
-  { label: 'CN', score: 9.5, date: '2/6' },
-];
-
-const SUBJECT_STATS = [
-  { name: 'Kinh tế vi mô',   done: 42, total: 50, avg: 8.2, color: '#1B3A6B', trend: '+1.5' },
-  { name: 'Toán cao cấp',    done: 30, total: 50, avg: 6.8, color: '#F5A623', trend: '+0.8' },
-  { name: 'Tư tưởng HCM',    done: 48, total: 50, avg: 9.1, color: '#22c55e', trend: '+2.1' },
-  { name: 'Lịch sử Đảng',    done: 25, total: 50, avg: 7.4, color: '#8b5cf6', trend: '+0.5' },
-  { name: 'Triết học',        done: 18, total: 50, avg: 6.2, color: '#ef4444', trend: '-0.3' },
-];
-
-const RECENT_EXAMS = [
-  { id: 1, title: 'Kinh tế vi mô - Đề thi cuối kỳ 2024', score: 9.0, total: 10, date: '2/6/2024',  time: '52 phút', correct: 45, wrong: 5 },
-  { id: 2, title: 'Tư tưởng HCM - Bộ đề 200 câu',        score: 9.5, total: 10, date: '31/5/2024', time: '44 phút', correct: 47, wrong: 3 },
-  { id: 3, title: 'Toán cao cấp A1 - Đề HK1',             score: 6.5, total: 10, date: '29/5/2024', time: '88 phút', correct: 33, wrong: 17 },
-  { id: 4, title: 'Lịch sử Đảng - Đề ôn tổng hợp',       score: 7.5, total: 10, date: '27/5/2024', time: '56 phút', correct: 38, wrong: 12 },
-];
-
-const ACHIEVEMENTS = [
-  { id: 1, icon: '🔥', title: 'Streak 7 ngày',   desc: 'Học liên tục 7 ngày',          unlocked: true,  color: '#f59e0b' },
-  { id: 2, icon: '💯', title: 'Điểm hoàn hảo',   desc: 'Đạt 10/10 lần đầu tiên',       unlocked: true,  color: '#22c55e' },
-  { id: 3, icon: '📚', title: '100 câu hỏi',     desc: 'Làm xong 100 câu trắc nghiệm', unlocked: true,  color: '#3b82f6' },
-  { id: 4, icon: '⚡', title: 'Tốc độ siêu nhân', desc: 'Hoàn thành bài trong 30 phút', unlocked: true,  color: '#8b5cf6' },
-  { id: 5, icon: '🎯', title: '500 câu hỏi',     desc: 'Hoàn thành 500 câu',           unlocked: false, color: '#6b7280' },
-  { id: 6, icon: '👑', title: 'Học bá',           desc: 'Điểm TB ≥ 9.0 trong 1 tuần',  unlocked: false, color: '#6b7280' },
-  { id: 7, icon: '🌟', title: 'Đa năng',          desc: 'Ôn thi ≥ 5 môn khác nhau',    unlocked: false, color: '#6b7280' },
-  { id: 8, icon: '🏆', title: 'Vô địch',          desc: 'Xếp hạng 1 trong tuần',        unlocked: false, color: '#6b7280' },
-];
 
 // ── Pure-CSS bar chart ────────────────────────────────────────────────────────
 function ScoreChart({ data }) {
@@ -155,17 +113,70 @@ function SubjectRow({ s }) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const avg = (SCORE_HISTORY.reduce((a, b) => a + b.score, 0) / SCORE_HISTORY.length).toFixed(1);
-  const totalQuestions = 263;
-  const streak = 7;
-  const readiness = 74;
+  const { user } = useAuth();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const statCards = [
-    { icon: '📊', label: 'Điểm TB', value: avg, sub: '+0.8 so với tuần trước', color: '#1B3A6B' },
-    { icon: '📝', label: 'Câu đã luyện', value: totalQuestions.toLocaleString(), sub: '87 câu tuần này', color: '#F5A623' },
-    { icon: '🔥', label: 'Streak hiện tại', value: `${streak} ngày`, sub: 'Kỷ lục cá nhân: 12 ngày', color: '#ef4444' },
-    { icon: '🎯', label: 'Đề đã hoàn thành', value: '14', sub: '3 đề tuần này', color: '#22c55e' },
-  ];
+  useEffect(() => {
+    if (!user) {
+      setError('Vui lòng đăng nhập để xem tiến độ');
+      setLoading(false);
+      return;
+    }
+
+    loadDashboard();
+  }, [user]);
+
+  const loadDashboard = async () => {
+    try {
+      const res = await dashboardApi.getUserDashboard();
+      setData(res.data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load dashboard:', err);
+      setError('Không thể tải dữ liệu tiến độ');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="dashboard-page page-enter">
+        <PageHeader
+          title="Thống kê tiến độ"
+          subtitle="Theo dõi phong độ học tập, điểm số và độ sẵn sàng cho kỳ thi"
+          icon="📈"
+        />
+        <div className="container" style={{ textAlign: 'center', padding: '60px 20px' }}>
+          Đang tải dữ liệu...
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="dashboard-page page-enter">
+        <PageHeader
+          title="Thống kê tiến độ"
+          subtitle="Theo dõi phong độ học tập, điểm số và độ sẵn sàng cho kỳ thi"
+          icon="📈"
+        />
+        <div className="container" style={{ textAlign: 'center', padding: '60px 20px', color: '#ef4444' }}>
+          ⚠️ {error || 'Không thể tải dữ liệu'}
+        </div>
+      </div>
+    );
+  }
+
+  const statCards = data.stat_cards;
+  const scoreHistory = data.score_history;
+  const subjectStats = data.subject_stats;
+  const recentExams = data.recent_exams;
+  const achievements = data.achievements;
+  const readiness = data.readiness;
 
   return (
     <div className="dashboard-page page-enter">
@@ -206,26 +217,26 @@ export default function DashboardPage() {
                 <span className="legend-dot" style={{ background: '#ef4444' }} /> &lt;6
               </div>
             </div>
-            <ScoreChart data={SCORE_HISTORY} />
+            <ScoreChart data={scoreHistory} />
             <div className="chart-summary">
               <div className="cs-item">
-                <span className="cs-val">{avg}</span>
+                <span className="cs-val">{data.avg_score}</span>
                 <span className="cs-label">Điểm TB</span>
               </div>
               <div className="cs-item">
                 <span className="cs-val" style={{ color: '#22c55e' }}>
-                  {SCORE_HISTORY.filter(d => d.score >= 8).length}
+                  {scoreHistory.filter(d => d.score >= 8).length}
                 </span>
                 <span className="cs-label">Lần ≥8</span>
               </div>
               <div className="cs-item">
                 <span className="cs-val" style={{ color: '#ef4444' }}>
-                  {SCORE_HISTORY.filter(d => d.score < 6).length}
+                  {scoreHistory.filter(d => d.score < 6).length}
                 </span>
                 <span className="cs-label">Lần &lt;6</span>
               </div>
               <div className="cs-item">
-                <span className="cs-val">{SCORE_HISTORY.length}</span>
+                <span className="cs-val">{scoreHistory.length}</span>
                 <span className="cs-label">Bài thi</span>
               </div>
             </div>
@@ -233,7 +244,7 @@ export default function DashboardPage() {
 
           {/* Readiness ring */}
           <div className="db-card db-card--readiness">
-            <h3 className="db-card__title">🎯 Độ sẵn sàng thi qua môn</h3>
+            <h3 className="db-card__title">Độ sẵn sàng thi qua môn</h3>
             <ReadinessRing value={readiness} />
             <div className="readiness-breakdown">
               {[
@@ -266,11 +277,17 @@ export default function DashboardPage() {
         {/* ── Subject progress ── */}
         <div className="db-card">
           <div className="db-card__head">
-            <h3 className="db-card__title">📚 Tiến độ theo môn học</h3>
-            <span className="db-card__sub">{SUBJECT_STATS.length} môn đang theo dõi</span>
+            <h3 className="db-card__title"> Tiến độ theo môn học</h3>
+            <span className="db-card__sub">{(subjectStats && subjectStats.length) || 0} môn đang theo dõi</span>
           </div>
           <div className="subj-list">
-            {SUBJECT_STATS.map(s => <SubjectRow key={s.name} s={s} />)}
+            {subjectStats && subjectStats.length > 0 ? (
+              subjectStats.map(s => <SubjectRow key={s.name} s={s} />)
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                Chưa có dữ liệu môn học. Hoàn thành một bài thi để bắt đầu!
+              </div>
+            )}
           </div>
         </div>
 
@@ -283,29 +300,35 @@ export default function DashboardPage() {
               <h3 className="db-card__title">🕐 Bài thi gần đây</h3>
             </div>
             <div className="recent-list">
-              {RECENT_EXAMS.map(e => {
-                const pct = (e.score / e.total) * 100;
-                const c   = pct >= 80 ? '#22c55e' : pct >= 60 ? '#F5A623' : '#ef4444';
-                return (
-                  <div key={e.id} className="recent-item">
-                    <div className="recent-score" style={{ background: `${c}15`, color: c }}>
-                      {e.score}
-                    </div>
-                    <div className="recent-info">
-                      <span className="recent-title">{e.title}</span>
-                      <div className="recent-meta">
-                        <span>📅 {e.date}</span>
-                        <span>⏱ {e.time}</span>
-                        <span className="ri-correct">✓ {e.correct}</span>
-                        <span className="ri-wrong">✗ {e.wrong}</span>
+              {recentExams && recentExams.length > 0 ? (
+                recentExams.map(e => {
+                  const pct = (e.score / e.total) * 100;
+                  const c   = pct >= 80 ? '#22c55e' : pct >= 60 ? '#F5A623' : '#ef4444';
+                  return (
+                    <div key={e.id} className="recent-item">
+                      <div className="recent-score" style={{ background: `${c}15`, color: c }}>
+                        {e.score}
                       </div>
+                      <div className="recent-info">
+                        <span className="recent-title">{e.title}</span>
+                        <div className="recent-meta">
+                          <span>📅 {e.date}</span>
+                          <span>⏱ {e.time}</span>
+                          <span className="ri-correct">✓ {e.correct}</span>
+                          <span className="ri-wrong">✗ {e.wrong}</span>
+                        </div>
+                      </div>
+                      <a href={`/exam/${e.id}?mode=exam`} className="btn btn-outline recent-btn">
+                        Làm lại
+                      </a>
                     </div>
-                    <a href={`/exam/${e.id}?mode=exam`} className="btn btn-outline recent-btn">
-                      Làm lại
-                    </a>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  Chưa có bài thi nào. Hãy bắt đầu ôn thi!
+                </div>
+              )}
             </div>
           </div>
 
@@ -314,19 +337,25 @@ export default function DashboardPage() {
             <div className="db-card__head">
               <h3 className="db-card__title">🏅 Thành tích</h3>
               <span className="db-card__sub">
-                {ACHIEVEMENTS.filter(a => a.unlocked).length}/{ACHIEVEMENTS.length} đã mở khóa
+                {achievements ? achievements.filter(a => a.unlocked).length : 0}/{achievements ? achievements.length : 0} đã mở khóa
               </span>
             </div>
             <div className="achievements-grid">
-              {ACHIEVEMENTS.map(a => (
-                <div key={a.id} className={`achievement-item ${a.unlocked ? 'unlocked' : 'locked'}`}>
-                  <div className="ach-icon" style={{ color: a.unlocked ? a.color : '#9ca3af', background: a.unlocked ? `${a.color}15` : 'var(--gray-100)' }}>
-                    {a.unlocked ? a.icon : '🔒'}
+              {achievements && achievements.length > 0 ? (
+                achievements.map(a => (
+                  <div key={a.id} className={`achievement-item ${a.unlocked ? 'unlocked' : 'locked'}`}>
+                    <div className="ach-icon" style={{ color: a.unlocked ? a.color : '#9ca3af', background: a.unlocked ? `${a.color}15` : 'var(--gray-100)' }}>
+                      {a.unlocked ? a.icon : '🔒'}
+                    </div>
+                    <span className="ach-title">{a.title}</span>
+                    <span className="ach-desc">{a.desc}</span>
                   </div>
-                  <span className="ach-title">{a.title}</span>
-                  <span className="ach-desc">{a.desc}</span>
+                ))
+              ) : (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#999' }}>
+                  Chưa có thành tích nào. Hãy bắt đầu học tập!
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Upsell — Semester Pass */}

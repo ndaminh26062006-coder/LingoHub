@@ -442,6 +442,8 @@
   flex-shrink: 0;
 }
 .legend-dot.answered   { background: var(--navy); }
+.legend-dot.correct    { background: #22c55e; }
+.legend-dot.wrong      { background: #ef4444; }
 .legend-dot.bookmarked { background: var(--orange); }
 .legend-dot.unanswered { background: var(--gray-300); }
 
@@ -470,6 +472,16 @@
 
 .nav-btn--answered {
   background: var(--navy);
+  color: var(--white);
+}
+
+.nav-btn--correct {
+  background: #22c55e;
+  color: var(--white);
+}
+
+.nav-btn--wrong {
+  background: #ef4444;
   color: var(--white);
 }
 
@@ -732,4 +744,30 @@
   .modal__actions .btn   { width: 100%; justify-content: center; }
   .result-stat__value    { font-size: 22px; }
   .exam-nav-arrows .btn  { padding: 9px 14px; font-size: 13px; }
+}
+
+
+/* ===== COMMENTS & LIKES SECTION ===== */
+.exam-footer-section {
+  margin-top: 48px;
+  margin-bottom: 48px;
+  padding: 0;
+}
+
+.exam-footer-row {
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .exam-footer-section {
+    margin-top: 32px;
+    margin-bottom: 32px;
+  }
+
+  .exam-footer-row {
+    margin-bottom: 24px;
+  }
 }

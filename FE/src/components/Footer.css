@@ -18,10 +18,10 @@
 }
 
 .footer__logo-img {
-  height: 48px;
+  height: 56px;
   width: auto;
   object-fit: contain;
-  /* logo has white bg — invert on dark footer */
+  /* Làm sáng logo trên nền tối */
   filter: brightness(0) invert(1);
 }
 

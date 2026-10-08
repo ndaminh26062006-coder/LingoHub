@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { authApi } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -14,18 +15,26 @@ function getInitialUser() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getInitialUser);
 
-  const login = (userData) => {
-    const u = {
-      name:   userData.name  || userData.email.split('@')[0],
-      email:  userData.email,
-      role:   userData.role  || 'student',   // 'admin' | 'student'
-      avatar: userData.avatar || null,
-    };
-    localStorage.setItem('lh_user', JSON.stringify(u));
-    setUser(u);
+  // Called after a successful login/register API response
+  const setAuth = (userData, token) => {
+    localStorage.setItem('lh_token', token);
+    localStorage.setItem('lh_user', JSON.stringify(userData));
+    setUser(userData);
   };
 
-  const logout = () => {
+  // For profile updates without a new token
+  const updateUser = (userData) => {
+    localStorage.setItem('lh_user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // ignore network errors on logout
+    }
+    localStorage.removeItem('lh_token');
     localStorage.removeItem('lh_user');
     setUser(null);
   };
@@ -33,7 +42,7 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, setAuth, updateUser, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

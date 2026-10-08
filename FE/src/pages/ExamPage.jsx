@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { generateQuestions, examList } from '../data/mockData';
+import { useParams, useSearchParams, useNavigate, useMatch } from 'react-router-dom';
+import { examApi, documentApi } from '../services/api';
+import api from '../services/api';
+import { useFreemium } from '../hooks/useFreemium';
 import './ExamPage.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9,6 +11,11 @@ import './ExamPage.css';
 function useCountdown(initialSeconds, onExpire, paused) {
   const [seconds, setSeconds] = useState(initialSeconds);
   const intervalRef = useRef(null);
+
+  // Reset timer when initialSeconds changes (new exam)
+  useEffect(() => {
+    setSeconds(initialSeconds);
+  }, [initialSeconds]);
 
   useEffect(() => {
     if (paused) { clearInterval(intervalRef.current); return; }
@@ -72,25 +79,43 @@ function TimerWidget({ seconds, display, totalSeconds }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Question Navigator panel
 // ─────────────────────────────────────────────────────────────────────────────
-function QuestionNavigator({ total, current, answers, bookmarks, onJump }) {
+function QuestionNavigator({ total, current, answers = {}, bookmarks = new Set(), questions = [], onJump }) {
   const getStatus = idx => {
-    if (bookmarks.has(idx + 1)) return 'bookmarked';
-    if (answers[idx + 1] !== undefined) return 'answered';
-    return 'unanswered';
+    const question = questions[idx];
+    if (!question) return 'unanswered';
+    
+    // Use question.id as key in answers object, not idx
+    const userAnswer = answers[question.id];
+    
+    // If no answer yet
+    if (userAnswer === undefined) {
+      if (bookmarks.has(idx + 1)) return 'bookmarked';
+      return 'unanswered';
+    }
+    
+    // Compare answer with correctAnswer
+    const isCorrect = userAnswer === question.correctAnswer;
+    return isCorrect ? 'correct' : 'wrong';
   };
 
-  const counts = {
-    answered:   Object.keys(answers).length,
-    bookmarked: bookmarks.size,
-    unanswered: total - Object.keys(answers).length,
-  };
+  // Count using question.id as key
+  let correctCount = 0;
+  let wrongCount = 0;
+  
+  questions.forEach((q) => {
+    const ans = answers[q.id];
+    if (ans !== undefined) {
+      if (ans === q.correctAnswer) correctCount++;
+      else wrongCount++;
+    }
+  });
 
   return (
     <div className="nav-panel">
       <div className="nav-panel__legend">
-        <span className="legend-item"><span className="legend-dot answered" />Đã trả lời ({counts.answered})</span>
-        <span className="legend-item"><span className="legend-dot bookmarked" />Đánh dấu ({counts.bookmarked})</span>
-        <span className="legend-item"><span className="legend-dot unanswered" />Chưa trả lời ({counts.unanswered})</span>
+        <span className="legend-item"><span className="legend-dot correct" />Đúng ({correctCount})</span>
+        <span className="legend-item"><span className="legend-dot wrong" />Sai ({wrongCount})</span>
+        <span className="legend-item"><span className="legend-dot unanswered" />Chưa trả lời ({total - Object.keys(answers).length})</span>
       </div>
       <div className="nav-grid">
         {Array.from({ length: total }, (_, i) => {
@@ -101,7 +126,7 @@ function QuestionNavigator({ total, current, answers, bookmarks, onJump }) {
               key={num}
               className={`nav-btn nav-btn--${status} ${current === num ? 'nav-btn--current' : ''}`}
               onClick={() => onJump(num)}
-              title={`Câu ${num}${status === 'bookmarked' ? ' (đã đánh dấu)' : ''}`}
+              title={`Câu ${num}${bookmarks.has(num) ? ' (đã đánh dấu)' : ''}`}
             >
               {bookmarks.has(num) && <span className="nav-btn__bm">🔖</span>}
               {num}
@@ -120,7 +145,7 @@ function ExamQuestion({ question, selected, onSelect, isBookmarked, onBookmark }
   return (
     <div className="question-card">
       <div className="question-card__header">
-        <span className="question-badge">Câu {question.id}</span>
+        <span className="question-badge">Câu {question.order || question.id || '?'}</span>
         <div className="question-card__actions">
           <span className="question-subject">{question.subject}</span>
           <button
@@ -136,18 +161,41 @@ function ExamQuestion({ question, selected, onSelect, isBookmarked, onBookmark }
 
       <p className="question-text">{question.text}</p>
 
-      <div className="options-list">
-        {question.options.map(opt => (
-          <button
-            key={opt.id}
-            className={`option-btn ${selected === opt.id ? 'selected' : ''}`}
-            onClick={() => onSelect(opt.id)}
-          >
-            <span className="option-letter">{opt.id}</span>
-            <span className="option-text">{opt.text}</span>
-          </button>
-        ))}
-      </div>
+      {question.options ? (
+        <div className="options-list">
+          {question.options.map(opt => (
+            <button
+              key={opt.id}
+              className={`option-btn ${selected === opt.id ? 'selected' : ''}`}
+              onClick={() => onSelect(opt.id)}
+            >
+              <span className="option-letter">{opt.id}</span>
+              <span className="option-text">{opt.text}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div>
+          <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px', color: '#666', fontSize: '13px', marginBottom: '12px' }}>
+            {question.type === 'essay' ? '✍️ Câu hỏi tự luận' : question.type === 'scenario' ? '🎭 Câu hỏi tình huống' : 'Câu hỏi'}
+          </div>
+          <textarea
+            style={{
+              width: '100%',
+              minHeight: '120px',
+              padding: '12px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontFamily: 'inherit',
+              fontSize: '14px',
+              resize: 'vertical'
+            }}
+            placeholder="Nhập câu trả lời của bạn tại đây..."
+            value={selected || ''}
+            onChange={(e) => onSelect(e.target.value)}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -217,11 +265,11 @@ function ResultsScreen({ questions, answers, durationSecs, totalSecs, examTitle,
         </div>
 
         <div className="results-actions">
-          <button className="btn btn-orange" style={{ flex: 1 }} onClick={onRetry}>🔄 Làm lại</button>
+          <button className="btn btn-orange" style={{ flex: 1 }} onClick={onRetry}>Làm lại</button>
           <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowReview(v => !v)}>
-            {showReview ? '▲ Ẩn đáp án' : '📋 Xem đáp án'}
+            {showReview ? 'Ẩn đáp án' : 'Xem đáp án'}
           </button>
-          <button className="btn btn-primary" style={{ flex: 1 }} onClick={onHome}>🏠 Về trang chủ</button>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={onHome}>Về trang chủ</button>
         </div>
       </div>
 
@@ -233,35 +281,99 @@ function ResultsScreen({ questions, answers, durationSecs, totalSecs, examTitle,
             const userAns = answers[q.id];
             const isCorrect = userAns === q.correctAnswer;
             const skipped = userAns === undefined;
+            const isEssayOrScenario = q.type === 'essay' || q.type === 'scenario';
+
+            // Determine status badge and color
+            let statusClass = 'correct';
+            let statusLabel = '✓ Đúng';
+            if (isEssayOrScenario && skipped) {
+              statusClass = 'skipped';
+              statusLabel = '— Bỏ qua';
+            } else if (isEssayOrScenario && userAns) {
+              statusClass = 'pending';
+              statusLabel = 'Chờ chấm';
+            } else if (!isEssayOrScenario) {
+              if (isCorrect) {
+                statusClass = 'correct';
+                statusLabel = '✓ Đúng';
+              } else if (skipped) {
+                statusClass = 'skipped';
+                statusLabel = '— Bỏ qua';
+              } else {
+                statusClass = 'wrong';
+                statusLabel = '✗ Sai';
+              }
+            }
+
             return (
-              <div key={q.id} className={`review-item ${isCorrect ? 'correct' : skipped ? 'skipped' : 'wrong'}`}>
+              <div key={q.id} className={`review-item ${isEssayOrScenario ? 'pending' : isCorrect ? 'correct' : skipped ? 'skipped' : 'wrong'}`}>
                 <div className="review-item__head">
-                  <span className="review-q-num">Câu {q.id}</span>
-                  <span className={`review-verdict ${isCorrect ? 'v-correct' : skipped ? 'v-skip' : 'v-wrong'}`}>
-                    {isCorrect ? '✓ Đúng' : skipped ? '— Bỏ qua' : '✗ Sai'}
+                  <span className="review-q-num">Câu {q.order || q.id}</span>
+                  <span className={`review-verdict v-${statusClass}`}>
+                    {statusLabel}
                   </span>
                 </div>
                 <p className="review-q-text">{q.text}</p>
-                <div className="review-options">
-                  {q.options.map(opt => {
-                    const isCorrectOpt = opt.id === q.correctAnswer;
-                    const isUserOpt = opt.id === userAns;
-                    return (
-                      <div
-                        key={opt.id}
-                        className={`review-option ${isCorrectOpt ? 'review-option--correct' : ''} ${isUserOpt && !isCorrect ? 'review-option--wrong' : ''}`}
-                      >
-                        <span className="option-letter">{opt.id}</span>
-                        <span>{opt.text}</span>
-                        {isCorrectOpt && <span className="opt-mark">✓</span>}
-                        {isUserOpt && !isCorrect && <span className="opt-mark wrong-mark">✗</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {!isCorrect && (
+
+                {/* Multiple choice: show options */}
+                {q.options && (
+                  <div className="review-options">
+                    {q.options.map(opt => {
+                      const isCorrectOpt = opt.id === q.correctAnswer;
+                      const isUserOpt = opt.id === userAns;
+                      return (
+                        <div
+                          key={opt.id}
+                          className={`review-option ${isCorrectOpt ? 'review-option--correct' : ''} ${isUserOpt && !isCorrect ? 'review-option--wrong' : ''}`}
+                        >
+                          <span className="option-letter">{opt.id}</span>
+                          <span>{opt.text}</span>
+                          {isCorrectOpt && <span className="opt-mark">✓</span>}
+                          {isUserOpt && !isCorrect && <span className="opt-mark wrong-mark">✗</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Essay/Scenario: show user's answer */}
+                {isEssayOrScenario && (
+                  <div className="review-answer-box" style={{ 
+                    backgroundColor: '#f9f9f9', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '6px', 
+                    padding: '12px',
+                    marginTop: '12px',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    color: '#333'
+                  }}>
+                    <strong style={{ display: 'block', marginBottom: '8px' }}>📝 Câu trả lời của bạn:</strong>
+                    <p style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {userAns || '(không có câu trả lời)'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Explanation */}
+                {q.explanation && !isEssayOrScenario && !isCorrect && (
                   <div className="review-explanation">
                     <strong>💡 Giải thích:</strong> {q.explanation}
+                  </div>
+                )}
+
+                {/* Pending review note for essay/scenario */}
+                {isEssayOrScenario && userAns && (
+                  <div className="review-note-pending" style={{
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fcd34d',
+                    borderRadius: '6px',
+                    padding: '10px 12px',
+                    marginTop: '12px',
+                    fontSize: '13px',
+                    color: '#92400e'
+                  }}>
+                    <strong>Câu này đang chờ giáo viên chấm điểm</strong>
                   </div>
                 )}
               </div>
@@ -280,36 +392,127 @@ export default function ExamPage() {
   const { examId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const mode = searchParams.get('mode') || 'exam'; // 'exam' | 'practice'
+  const mode = searchParams.get('mode') || 'exam';
 
-  // Find exam meta
-  const examMeta = examList.find(e => e.id === examId) || {
-    id: examId, title: 'Đề thi', questions: 50, duration: 60,
+  // Phân biệt document (tài liệu) vs exam (đề thi thử)
+  const isDocument = !!useMatch('/document/:examId');
+  const contentApi = isDocument ? documentApi : examApi;
+
+  // Exam meta + questions state
+  const [examMeta, setExamMeta]   = useState({ id: examId, title: 'Đề thi', questions_count: 50, duration: 60 });
+  const [questions, setQuestions] = useState([]);
+  const [loadingQ,  setLoadingQ]  = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  useEffect(() => {
+    // Load exam metadata
+    contentApi.get(examId)
+      .then(res => {
+        setExamMeta(res.data);
+        
+        // Check subject access
+        const checkAccess = async () => {
+          try {
+            const token = localStorage.getItem('lh_token');
+            
+            if (!token) {
+              console.log('No token - skipping access check');
+              loadQuestions(res.data);
+              return;
+            }
+            
+            if (!res.data.subject_id) {
+              console.log('No subject_id - skipping access check');
+              loadQuestions(res.data);
+              return;
+            }
+            
+            // Check if user has access to this subject
+            const response = await fetch('http://localhost:8000/api/subscriptions/check-subject', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ subject_id: res.data.subject_id }),
+            });
+            
+            const data = await response.json();
+            console.log('Subject access check response:', data);
+            
+            if (!data.has_access) {
+              console.log('Access DENIED');
+              setAccessDenied(true);
+              setLoadingQ(false);
+              return;
+            }
+            
+            console.log('Access GRANTED');
+          } catch (err) {
+            console.error('Error checking subject access:', err);
+          }
+          
+          // Load questions if access is granted
+          loadQuestions(res.data);
+        };
+        
+        checkAccess();
+      })
+      .catch(err => {
+        console.error('Failed to load exam:', err);
+        setLoadingQ(false);
+      });
+  }, [examId, isDocument]);
+  
+  const loadQuestions = (examMeta) => {
+    // Fetch questions with full=1 to get correct_answer in practice mode
+    const url = mode === 'practice' 
+      ? `/${isDocument ? 'documents' : 'exams'}/${examId}/questions?full=1`
+      : `/${isDocument ? 'documents' : 'exams'}/${examId}/questions`;
+    
+    api.get(url)
+      .then(res => {
+        setQuestions(res.data.map(q => ({
+          id:            q.id,
+          order:         q.order,
+          type:          q.type,
+          text:          q.content,
+          options:       q.options,
+          correctAnswer: q.correct_answer || null,
+          explanation:   q.explanation || null,
+          subject:       examMeta.subject || '',
+          difficulty:    q.difficulty,
+        })));
+        setLoadingQ(false);
+      })
+      .catch(err => {
+        console.error('Failed to load questions:', err);
+        setQuestions([]);
+        setLoadingQ(false);
+      });
   };
-  const TOTAL_SECS = examMeta.duration * 60;
 
-  // State
-  const [questions]   = useState(() => generateQuestions(examMeta.questions || 50));
-  const [current, setCurrent]       = useState(1);
-  const [answers, setAnswers]       = useState({});       // { qId: 'A'|'B'|'C'|'D' }
-  const [bookmarks, setBookmarks]   = useState(new Set());
-  const [submitted, setSubmitted]   = useState(false);
+  const TOTAL_SECS = (examMeta.duration || 60) * 60;
+
+  const [current, setCurrent]         = useState(1);
+  const [answers, setAnswers]         = useState({});
+  const [bookmarks, setBookmarks]     = useState(new Set());
+  const [submitted, setSubmitted]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [remainingSecs, setRemaining] = useState(TOTAL_SECS);
+  const [apiResults, setApiResults]   = useState(null); // results from /submit API
 
   // Mode: practice shows answer immediately, exam hides until submit
-  const isPractice = mode === 'practice';
+  // (declared again below after loading guard)
 
   // Expire callback
   const handleExpire = useCallback(() => { if (!submitted) setSubmitted(true); }, [submitted]);
 
-  const { seconds, display } = useCountdown(TOTAL_SECS, handleExpire, submitted || isPractice);
+  // isPractice used here before loading guard — compute from mode
+  const { seconds, display } = useCountdown(TOTAL_SECS, handleExpire, submitted || (mode === 'practice'));
 
   // Keep track of remaining for results
   useEffect(() => { setRemaining(seconds); }, [seconds]);
-
-  const question = questions[current - 1];
-  const total    = questions.length;
 
   const selectAnswer = (qId, optId) => {
     setAnswers(prev => ({ ...prev, [qId]: optId }));
@@ -327,10 +530,25 @@ export default function ExamPage() {
   const goPrev = () => current > 1 && setCurrent(current - 1);
   const goNext = () => current < total && setCurrent(current + 1);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const unanswered = total - Object.keys(answers).length;
     if (unanswered > 0 && !showConfirm) { setShowConfirm(true); return; }
     setShowConfirm(false);
+
+    // Call API submit — merge correct answers into questions for results screen
+    try {
+      const res = await contentApi.submit(examId, answers);
+      const data = res.data; // { score, correct, wrong, skipped, total, results }
+      setApiResults(data);
+      // Merge correct_answer + explanation into questions
+      setQuestions(prev => prev.map(q => {
+        const r = data.results?.find(r => r.id === q.id);
+        return r ? { ...q, correctAnswer: r.correct_answer, explanation: r.explanation } : q;
+      }));
+    } catch {
+      // Fallback: submit offline using mock correct answers
+      setApiResults(null);
+    }
     setSubmitted(true);
   };
 
@@ -340,7 +558,50 @@ export default function ExamPage() {
     setCurrent(1);
     setSubmitted(false);
     setShowConfirm(false);
+    setApiResults(null);
   };
+
+  // ── Loading / empty guard ──
+  if (loadingQ) {
+    return (
+      <div className="exam-page" style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ textAlign:'center', padding:60 }}>
+          <div style={{ fontSize:40, marginBottom:16 }}></div>
+          <p style={{ fontSize:16, color:'var(--navy)' }}>Đang tải đề thi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="exam-page" style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ textAlign:'center', padding:60 }}>
+          <div style={{ fontSize:48, marginBottom:16 }}>🔒</div>
+          <h3 style={{ fontSize:20, fontWeight:800, color:'var(--navy)', marginBottom:8 }}>Không có quyền truy cập</h3>
+          <p style={{ fontSize:14, color:'var(--text-muted)', marginBottom:24 }}>Bạn không có quyền truy cập vào môn học này. Vui lòng nâng cấp tài khoản hoặc chọn môn học khác.</p>
+          <button className="btn btn-primary" onClick={() => navigate(-1)}>← Quay lại</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="exam-page" style={{ display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ textAlign:'center', padding:60 }}>
+          <div style={{ fontSize:48, marginBottom:16 }}>📭</div>
+          <h3 style={{ fontSize:20, fontWeight:800, color:'var(--navy)', marginBottom:8 }}>Đề thi chưa có câu hỏi</h3>
+          <p style={{ fontSize:14, color:'var(--text-muted)', marginBottom:24 }}>Admin chưa thêm câu hỏi cho đề thi này.</p>
+          <button className="btn btn-primary" onClick={() => navigate(-1)}>← Quay lại</button>
+        </div>
+      </div>
+    );
+  }
+
+  const isPractice = mode === 'practice';
+  const question   = questions[current - 1];
+  const total      = questions.length;
 
   // ── Submitted → show results ──
   if (submitted && !isPractice) {
@@ -371,7 +632,7 @@ export default function ExamPage() {
           <div className="exam-topbar__info">
             <span className="exam-topbar__title">{examMeta.title}</span>
             <span className={`exam-topbar__mode ${isPractice ? 'mode-practice' : 'mode-exam'}`}>
-              {isPractice ? '📖 Chế độ luyện tập' : '⏱️ Thi thật'}
+              {isPractice ? 'Chế độ luyện tập' : 'Thi thật'}
             </span>
           </div>
         </div>
@@ -456,6 +717,7 @@ export default function ExamPage() {
                 current={current}
                 answers={answers}
                 bookmarks={bookmarks}
+                questions={questions}
                 onJump={goTo}
               />
             </div>
@@ -485,6 +747,8 @@ export default function ExamPage() {
           </div>
         </div>
       )}
+
+      {/* ── Comments & Likes removed ── */}
     </div>
   );
 }
@@ -550,7 +814,12 @@ function PracticeQuestion({ question, selected, onSelect, isBookmarked, onBookma
               : <><span className="expl-icon">❌</span><strong>Chưa đúng.</strong> Đáp án đúng là <strong>{question.correctAnswer}</strong></>
             }
           </div>
-          <p className="explanation-text">{question.explanation}</p>
+          {question.explanation && (
+            <>
+              <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:6 }}>💡 <strong>Giải thích:</strong></p>
+              <p className="explanation-text">{question.explanation}</p>
+            </>
+          )}
         </div>
       )}
     </div>

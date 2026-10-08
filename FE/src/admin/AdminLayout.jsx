@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo.png-removebg-preview.png';
 import './AdminLayout.css';
 
 const NAV_ITEMS = [
-  { to: '/admin',             label: 'Dashboard',          icon: '📊' },
-  { to: '/admin/users',       label: 'Tài khoản',          icon: '👥' },
-  { to: '/admin/exams',       label: 'Đề thi thử',         icon: '📝' },
-  { to: '/admin/on-tap',      label: 'Đề ôn tập',          icon: '📚' },
-  { to: '/admin/tu-luan',     label: 'Câu hỏi tự luận',    icon: '✍️' },
-  { to: '/admin/flashcard',   label: 'Flashcard',           icon: '🃏' },
+  { to: '/admin',             label: 'Dashboard',          icon: '' },
+  { to: '/admin/users',       label: 'Tài khoản',          icon: '' },
+  { to: '/admin/exams',       label: 'Đề thi thử',         icon: '' },
+  { to: '/admin/on-tap',      label: 'Tài liệu trắc nghiệm',          icon: '' },
+  { to: '/admin/tu-luan',     label: 'Câu hỏi tự luận',    icon: '' },
+  { to: '/admin/flashcard',   label: 'Flashcard',           icon: '' },
 ];
 
 export default function AdminLayout({ children }) {
@@ -30,11 +31,8 @@ export default function AdminLayout({ children }) {
         {/* Logo */}
         <div className="admin-sidebar__logo">
           <Link to="/" className="admin-logo-link">
-            <div className="admin-logo-icon">🎓</div>
-            <div>
-              <span className="admin-logo-name">LingoHub</span>
-              <span className="admin-logo-tag">Admin Panel</span>
-            </div>
+            <img src={logo} alt="LingoHub" className="admin-logo-img" />
+            <span className="admin-logo-tag">Admin Panel</span>
           </Link>
         </div>
 

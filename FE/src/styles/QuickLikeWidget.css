@@ -1,0 +1,71 @@
+.quick-like-widget {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.quick-like-btn,
+.quick-dislike-btn,
+.quick-comments-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-like-btn:hover:not(:disabled),
+.quick-dislike-btn:hover:not(:disabled),
+.quick-comments-btn:hover:not(:disabled) {
+  border-color: #dee2e6;
+  background: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.quick-like-btn.active {
+  border-color: #28a745;
+  background: #d4edda;
+  color: #155724;
+}
+
+.quick-dislike-btn.active {
+  border-color: #dc3545;
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.quick-comments-btn {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.quick-comments-btn:hover:not(:disabled) {
+  background: #e7f1ff;
+  border-color: #0b5ed7;
+}
+
+.quick-like-btn:disabled,
+.quick-dislike-btn:disabled,
+.quick-comments-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .quick-like-btn,
+  .quick-dislike-btn,
+  .quick-comments-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}

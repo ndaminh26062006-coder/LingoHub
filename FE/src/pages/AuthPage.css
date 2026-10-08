@@ -29,11 +29,9 @@
   height: 80px;
   width: auto;
   object-fit: contain;
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  padding: 10px 20px;
   margin-bottom: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  /* Làm sáng logo trên nền navy tối */
+  filter: brightness(0) invert(1);
 }
 
 .auth-panel__title {
@@ -421,3 +419,30 @@
   transition: color 0.15s;
 }
 .demo-fill-link:hover { color: var(--orange-dark); }
+
+/* ── Back to home button ── */
+.auth-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 0;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+  width: fit-content;
+}
+
+.auth-back-btn:hover {
+  color: var(--navy);
+}
+
+.auth-back-btn svg {
+  transition: transform 0.2s;
+}
+
+.auth-back-btn:hover svg {
+  transform: translateX(-3px);
+}

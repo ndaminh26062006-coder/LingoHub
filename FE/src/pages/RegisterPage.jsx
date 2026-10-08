@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import logo from '../assets/logo.png.jpg';
+import { Link, useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.png-removebg-preview.png';
+import { useAuth } from '../context/AuthContext';
+import { authApi, parseErrors } from '../services/api';
 import './AuthPage.css';
 
 export default function RegisterPage() {
+  const { setAuth }    = useAuth();
+  const navigate       = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [showPass, setShowPass]       = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed]           = useState(false);
   const [errors, setErrors]           = useState({});
+  const [loading, setLoading]         = useState(false);
 
   const validate = () => {
     const e = {};
@@ -22,13 +27,30 @@ export default function RegisterPage() {
     return e;
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
+
+    setLoading(true);
     setErrors({});
-    // TODO: gọi API đăng ký
-    alert('Đăng ký thành công (demo)');
+
+    try {
+      const res = await authApi.register({
+        name:                  form.name,
+        email:                 form.email,
+        password:              form.password,
+        password_confirmation: form.confirm,
+      });
+      const { user, token } = res.data;
+      setAuth(user, token);
+      navigate('/');
+    } catch (err) {
+      const parsed = parseErrors(err);
+      setErrors(parsed);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const set = field => e => setForm(f => ({ ...f, [field]: e.target.value }));
@@ -38,11 +60,11 @@ export default function RegisterPage() {
     const p = form.password;
     if (!p) return 0;
     let s = 0;
-    if (p.length >= 6)                    s++;
-    if (p.length >= 10)                   s++;
-    if (/[A-Z]/.test(p))                  s++;
-    if (/[0-9]/.test(p))                  s++;
-    if (/[^A-Za-z0-9]/.test(p))           s++;
+    if (p.length >= 6)           s++;
+    if (p.length >= 10)          s++;
+    if (/[A-Z]/.test(p))         s++;
+    if (/[0-9]/.test(p))         s++;
+    if (/[^A-Za-z0-9]/.test(p))  s++;
     return Math.min(s, 4);
   })();
   const strengthLabel = ['', 'Yếu', 'Trung bình', 'Khá', 'Mạnh'][strength];
@@ -87,6 +109,12 @@ export default function RegisterPage() {
           </Link>
 
           <div className="auth-form__head">
+            <Link to="/" className="auth-back-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+              Về trang chủ
+            </Link>
             <h1 className="auth-form__title">Đăng ký</h1>
             <p className="auth-form__subtitle">
               Đã có tài khoản?{' '}
@@ -228,8 +256,8 @@ export default function RegisterPage() {
               {errors.agreed && <p className="form-error">{errors.agreed}</p>}
             </div>
 
-            <button type="submit" className="btn btn-primary auth-submit-btn">
-              Tạo tài khoản
+            <button type="submit" className="btn btn-primary auth-submit-btn" disabled={loading}>
+              {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
             </button>
 
             <div className="auth-divider"><span>hoặc</span></div>

@@ -1,0 +1,362 @@
+{
+  "info": {
+    "name": "LingoHub Freemium System - API Tests",
+    "description": "Test collection for freemium, subscriptions, and payments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Freemium - Public",
+      "item": [
+        {
+          "name": "Get Pricing Tiers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/freemium/pricing",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "freemium", "pricing"]
+            }
+          }
+        },
+        {
+          "name": "Check Access (First Use - Should Allow)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feature\": \"essay\",\n  \"device_id\": \"device_fingerprint_123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/freemium/check-access",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "freemium", "check-access"]
+            }
+          }
+        },
+        {
+          "name": "Check Access (Second Use - Should Allow)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feature\": \"essay\",\n  \"device_id\": \"device_fingerprint_123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/freemium/check-access",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "freemium", "check-access"]
+            }
+          }
+        },
+        {
+          "name": "Check Access (Third Use - Should Deny + Show Pricing)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feature\": \"essay\",\n  \"device_id\": \"device_fingerprint_123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/freemium/check-access",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "freemium", "check-access"]
+            }
+          }
+        },
+        {
+          "name": "Get Usage Stats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"device_fingerprint_123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/freemium/usage-stats",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "freemium", "usage-stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions - Protected",
+      "item": [
+        {
+          "name": "Get My Subscription (No Active)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/subscriptions/me",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "subscriptions", "me"]
+            }
+          }
+        },
+        {
+          "name": "Check Subject Access",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject_id\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/subscriptions/check-subject",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "subscriptions", "check-subject"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/subscriptions/history",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "subscriptions", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments - Protected",
+      "item": [
+        {
+          "name": "Create Payment (1 Môn)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"1month\",\n  \"subjects\": [1]\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/payments/sepay/create",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "payments", "sepay", "create"]
+            }
+          }
+        },
+        {
+          "name": "Create Payment (Full Access)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"full\",\n  \"subjects\": []\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/payments/sepay/create",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "payments", "sepay", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/payments/sepay/status/LINGOHUB_1_ABC123_1234567890",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "payments", "sepay", "status", "LINGOHUB_1_ABC123_1234567890"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_API_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/payments/history",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "payments", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Reset Usage (Dev Only)",
+      "item": [
+        {
+          "name": "Reset Freemium Usage",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ADMIN_TOKEN"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/admin/freemium/reset/device_fingerprint_123",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["api", "admin", "freemium", "reset", "device_fingerprint_123"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

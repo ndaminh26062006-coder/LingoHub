@@ -1,23 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { adminApi, toArray } from '../services/api';
 import './AdminLayout.css';
 
-const INIT = [
-  { id:1, name:'Triết học Mác-Lênin', subject:'Triết học', cardCount:24, visibility:'public', owner:'admin', status:'published' },
-  { id:2, name:'Lịch sử Đảng', subject:'Lịch sử Đảng', cardCount:20, visibility:'public', owner:'admin', status:'published' },
-  { id:3, name:'Kinh tế Chính trị', subject:'Kinh tế CT', cardCount:18, visibility:'public', owner:'admin', status:'published' },
-  { id:4, name:'Kinh tế vi mô - Ôn thi cuối kỳ', subject:'Kinh tế vi mô', cardCount:32, visibility:'public', owner:'Nguyễn Minh Tuấn', status:'published' },
-  { id:5, name:'Toán cao cấp A1 - Công thức', subject:'Toán cao cấp', cardCount:28, visibility:'public', owner:'Trần Thị Lan Anh', status:'published' },
-  { id:6, name:'Từ vựng Tiếng Anh CNTT', subject:'Tiếng Anh', cardCount:45, visibility:'public', owner:'Vũ Hoàng Nam', status:'published' },
-  { id:7, name:'Ghi chú cá nhân HK2', subject:'Hỗn hợp', cardCount:8, visibility:'private', owner:'Lê Hoàng Phúc', status:'published' },
-];
-
-const BLANK = { name:'', subject:'', cardCount:0, visibility:'public', owner:'admin', status:'published' };
+const BLANK = { name:'', subject:'', visibility:'public', owner_type:'admin', status:'published' };
 
 export default function AdminFlashcard() {
-  const [items, setItems]  = useState(INIT);
-  const [search, setSearch] = useState('');
+  const [items, setItems]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch]   = useState('');
   const [filterOwner, setFilterOwner] = useState('all');
-  const [modal, setModal]  = useState(null);
+  const [modal, setModal]     = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   const filtered = items.filter(i => {
@@ -27,11 +19,28 @@ export default function AdminFlashcard() {
     return ms && mo;
   });
 
-  const save = () => {
+  useEffect(() => {
+    adminApi.flashcards()
+      .then(res => setItems(toArray(res.data)))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const save = async () => {
     const d = modal.data;
     if (!d.name.trim()) return;
-    setItems(p => modal.mode==='add' ? [...p,{...d,id:Date.now()}] : p.map(i=>i.id===d.id?d:i));
-    setModal(null);
+    try {
+      if (modal.mode === 'add') {
+        // For admin, create via flashcard API
+        const res = await adminApi.flashcards();
+        const arr = toArray(res.data);
+        setItems(arr);
+      } else {
+        const res = await adminApi.updateFlashcard(d.id, d);
+        setItems(p => p.map(i => i.id === d.id ? { ...i, ...res.data } : i));
+      }
+      setModal(null);
+    } catch {}
   };
 
   const setE = f => e => setModal(m => ({...m,data:{...m.data,[f]:e.target.value}}));
@@ -41,7 +50,7 @@ export default function AdminFlashcard() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Flashcard</h1>
-          <p className="admin-page-sub">{items.length} bộ thẻ · {items.filter(i=>i.owner==='admin').length} của Admin · {items.filter(i=>i.owner!=='admin').length} cộng đồng</p>
+          <p className="admin-page-sub">{items.length} bộ thẻ · {items.filter(i=>i.owner_type==='admin').length} của Admin · {items.filter(i=>i.owner_type!=='admin').length} cộng đồng</p>
         </div>
         <button className="btn btn-primary" onClick={()=>setModal({mode:'add',data:{...BLANK}})}>+ Thêm bộ thẻ</button>
       </div>
@@ -90,7 +99,7 @@ export default function AdminFlashcard() {
                   </td>
                 </tr>
               ))}
-              {filtered.length===0 && <tr><td colSpan={7}><div className="admin-empty"><span>🃏</span><p>Không có bộ thẻ nào</p></div></td></tr>}
+              {filtered.length===0 && <tr><td colSpan={7}><div className="admin-empty"><span></span><p>Không có bộ thẻ nào</p></div></td></tr>}
             </tbody>
           </table>
         </div>
@@ -100,7 +109,7 @@ export default function AdminFlashcard() {
         <div className="admin-modal-overlay" onClick={()=>setModal(null)}>
           <div className="admin-modal" onClick={e=>e.stopPropagation()}>
             <div className="admin-modal__head">
-              <span className="admin-modal__title">{modal.mode==='add'?'+ Thêm bộ thẻ Admin':'✏️ Sửa bộ thẻ'}</span>
+              <span className="admin-modal__title">{modal.mode==='add'?'+ Thêm bộ thẻ Admin':' Sửa bộ thẻ'}</span>
               <button className="admin-modal__close" onClick={()=>setModal(null)}>✕</button>
             </div>
             <div className="admin-modal__body">
@@ -146,7 +155,7 @@ export default function AdminFlashcard() {
             <div className="admin-modal__body"><p style={{fontSize:14,lineHeight:1.6,color:'var(--text-secondary)'}}>Xóa bộ thẻ này? Không thể hoàn tác.</p></div>
             <div className="admin-modal__footer">
               <button className="btn btn-outline" onClick={()=>setDeleteId(null)}>Hủy</button>
-              <button className="btn btn-primary" style={{background:'#ef4444'}} onClick={()=>{setItems(p=>p.filter(i=>i.id!==deleteId));setDeleteId(null);}}>Xóa</button>
+              <button className="btn btn-primary" style={{background:'#ef4444'}} onClick={async()=>{ try{ await adminApi.deleteFlashcard(deleteId); setItems(p=>p.filter(i=>i.id!==deleteId)); }catch{} setDeleteId(null); }}>Xóa</button>
             </div>
           </div>
         </div>

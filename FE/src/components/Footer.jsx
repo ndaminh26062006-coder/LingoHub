@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.png.jpg';
+import logo from '../assets/logo.png-removebg-preview.png';
 import './Footer.css';
 
 export default function Footer() {
@@ -31,9 +31,9 @@ export default function Footer() {
         <div className="footer__links-group">
           <h4 className="footer__group-title">Tính năng</h4>
           <ul className="footer__links">
-            <li><Link to="/tu-luan">🤖 Kho câu hỏi tự luận</Link></li>
-            <li><Link to="/flashcard">🃏 Flashcard</Link></li>
-            <li><Link to="/tien-do">📈 Tiến độ học tập</Link></li>
+            <li><Link to="/tu-luan">Kho câu hỏi tự luận</Link></li>
+            <li><Link to="/flashcard">Flashcard</Link></li>
+            <li><Link to="/tien-do">Tiến độ học tập</Link></li>
           </ul>
         </div>
 
@@ -49,7 +49,7 @@ export default function Footer() {
 
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
-          <p>© 2024 LingoHub. Tất cả quyền được bảo lưu.</p>
+          <p>© 2026 LingoHub. Tất cả quyền được bảo lưu.</p>
         </div>
       </div>
     </footer>

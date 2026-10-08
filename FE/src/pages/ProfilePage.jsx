@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { authApi, parseErrors } from '../services/api';
 import PageHeader from '../components/PageHeader';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
-  const { user, login } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [form, setForm] = useState({
     name:    user?.name  || '',
@@ -24,28 +25,47 @@ export default function ProfilePage() {
   const set    = f => e => setForm(v => ({ ...v, [f]: e.target.value }));
   const setPw  = f => e => setPwForm(v => ({ ...v, [f]: e.target.value }));
 
-  const handleSaveInfo = e => {
+  const handleSaveInfo = async e => {
     e.preventDefault();
-    login({ name: form.name, email: form.email });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    try {
+      const res = await authApi.updateProfile({
+        name: form.name, email: form.email,
+        school: form.school, major: form.major,
+        year: form.year, phone: form.phone,
+      });
+      updateUser(res.data);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch {
+      setSaved(false);
+    }
   };
 
-  const handleSavePw = e => {
+  const handleSavePw = async e => {
     e.preventDefault();
-    setPwSaved(true);
-    setTimeout(() => setPwSaved(false), 2500);
-    setPwForm({ current: '', next: '', confirm: '' });
+    try {
+      await authApi.changePassword({
+        current_password: pwForm.current,
+        password: pwForm.next,
+        password_confirmation: pwForm.confirm,
+      });
+      setPwSaved(true);
+      setTimeout(() => setPwSaved(false), 2500);
+      setPwForm({ current: '', next: '', confirm: '' });
+    } catch (err) {
+      const parsed = parseErrors(err);
+      alert(parsed.current_password || parsed._global || 'Có lỗi xảy ra.');
+    }
   };
 
   const initials = (user?.name || 'U')
     .split(' ').map(w => w[0]).slice(-2).join('').toUpperCase();
 
   const stats = [
-    { icon: '📝', label: 'Câu đã luyện', value: '263' },
-    { icon: '🎯', label: 'Đề hoàn thành', value: '14' },
-    { icon: '🔥', label: 'Streak',        value: '7 ngày' },
-    { icon: '⭐', label: 'Điểm TB',       value: '8.2' },
+    { icon: '', label: 'Câu đã luyện', value: '263' },
+    { icon: '', label: 'Đề hoàn thành', value: '14' },
+    { icon: '', label: 'Streak',        value: '7 ngày' },
+    { icon: '', label: 'Điểm TB',       value: '8.2' },
   ];
 
   return (

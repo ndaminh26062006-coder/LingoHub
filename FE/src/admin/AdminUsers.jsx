@@ -1,39 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { adminApi } from '../services/api';
 import './AdminLayout.css';
 
-const INIT_USERS = [
-  { id: 1, name: 'Nguyễn Minh Tuấn',    email: 'tuan.nm@hcmue.edu.vn',    school: 'ĐH Kinh tế TP.HCM',  role: 'student', status: 'active',   joined: '01/06/2024', exams: 24, streak: 12 },
-  { id: 2, name: 'Trần Thị Lan Anh',    email: 'anh.ttl@bku.edu.vn',      school: 'ĐH Bách Khoa HN',    role: 'student', status: 'active',   joined: '15/05/2024', exams: 31, streak: 8  },
-  { id: 3, name: 'Phạm Đức Hùng',       email: 'hung.pd@ftu.edu.vn',      school: 'ĐH Ngoại Thương',    role: 'student', status: 'active',   joined: '20/04/2024', exams: 18, streak: 5  },
-  { id: 4, name: 'Lê Thị Thu Hà',       email: 'ha.ltt@hlu.edu.vn',       school: 'ĐH Luật TP.HCM',     role: 'student', status: 'blocked',  joined: '10/04/2024', exams: 6,  streak: 0  },
-  { id: 5, name: 'Vũ Hoàng Nam',        email: 'nam.vh@uit.edu.vn',       school: 'ĐH CNTT TP.HCM',     role: 'student', status: 'active',   joined: '05/04/2024', exams: 42, streak: 7  },
-  { id: 6, name: 'Đặng Thị Bích Ngọc', email: 'ngoc.dtb@ussh.edu.vn',    school: 'ĐH KHXH&NV',         role: 'student', status: 'active',   joined: '01/04/2024', exams: 15, streak: 3  },
-  { id: 7, name: 'Hoàng Văn Khánh',     email: 'khanh.hv@hcmue.edu.vn',   school: 'ĐH Sư phạm TP.HCM',  role: 'student', status: 'active',   joined: '25/03/2024', exams: 29, streak: 9  },
-  { id: 8, name: 'Bùi Thị Thanh Mai',   email: 'mai.btt@ump.edu.vn',      school: 'ĐH Y Dược TP.HCM',   role: 'student', status: 'active',   joined: '18/03/2024', exams: 20, streak: 6  },
-  { id: 9, name: 'Lê Hoàng Phúc',       email: 'phuc.lh@fpt.edu.vn',      school: 'ĐH FPT',             role: 'student', status: 'active',   joined: '10/03/2024', exams: 56, streak: 15 },
-  { id:10, name: 'Admin LingoHub',       email: 'admin@lingohub.vn',       school: 'LingoHub',            role: 'admin',   status: 'active',   joined: '01/01/2024', exams: 0,  streak: 0  },
-];
-
 export default function AdminUsers() {
-  const [users, setUsers] = useState(INIT_USERS);
-  const [search, setSearch] = useState('');
-  const [filterRole, setFilterRole]   = useState('all');
+  const [users, setUsers]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch]   = useState('');
+  const [filterRole,   setFilterRole]   = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [selected, setSelected] = useState(null); // detail modal
+  const [selected, setSelected]   = useState(null);
   const [confirmBlock, setConfirmBlock] = useState(null);
 
-  const filtered = users.filter(u => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.school.toLowerCase().includes(q);
-    const matchRole   = filterRole   === 'all' || u.role   === filterRole;
-    const matchStatus = filterStatus === 'all' || u.status === filterStatus;
-    return matchSearch && matchRole && matchStatus;
-  });
+  const loadUsers = useCallback(() => {
+    setLoading(true);
+    const params = {};
+    if (search)             params.q      = search;
+    if (filterRole   !== 'all') params.role   = filterRole;
+    if (filterStatus !== 'all') params.status = filterStatus;
 
-  const toggleBlock = id => {
-    setUsers(us => us.map(u => u.id === id ? { ...u, status: u.status === 'active' ? 'blocked' : 'active' } : u));
+    adminApi.users(params)
+      .then(res => setUsers(res.data.data || res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [search, filterRole, filterStatus]);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const toggleBlock = async id => {
+    try {
+      const res = await adminApi.toggleBlock(id);
+      setUsers(us => us.map(u => u.id === id ? { ...u, status: res.data.status } : u));
+      if (selected?.id === id) setSelected(s => ({ ...s, status: res.data.status }));
+    } catch {}
     setConfirmBlock(null);
-    if (selected?.id === id) setSelected(s => ({ ...s, status: s.status === 'active' ? 'blocked' : 'active' }));
+  };
+
+  const updateAdminRole = async (id, role, adminRole) => {
+    try {
+      const updateData = { role };
+      if (role === 'admin') {
+        updateData.admin_role = adminRole;
+      }
+      const res = await adminApi.updateUser(id, updateData);
+      setUsers(us => us.map(u => u.id === id ? { ...u, role: res.data.role, admin_role: res.data.admin_role } : u));
+      if (selected?.id === id) setSelected(s => ({ ...s, role: res.data.role, admin_role: res.data.admin_role }));
+    } catch (err) {
+      alert('Lỗi: ' + (err.response?.data?.message || 'Không thể cập nhật'));
+    }
   };
 
   const statusBadge = s => s === 'active'
@@ -73,7 +86,7 @@ export default function AdminUsers() {
             <option value="blocked">Đã khóa</option>
           </select>
           <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            {filtered.length} kết quả
+            {users.length} kết quả
           </span>
         </div>
       </div>
@@ -94,7 +107,9 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(u => (
+              {loading ? (
+                <tr><td colSpan={7}><div className="admin-empty"><span></span><p>Đang tải...</p></div></td></tr>
+              ) : users.map(u => (
                 <tr key={u.id}>
                   <td>
                     <div style={{ display:'flex', alignItems:'center', gap:10 }}>
@@ -110,8 +125,8 @@ export default function AdminUsers() {
                   <td style={{ fontSize:12 }}>{u.school}</td>
                   <td>{roleBadge(u.role)}</td>
                   <td>{statusBadge(u.status)}</td>
-                  <td style={{ fontWeight:700, textAlign:'center' }}>{u.exams}</td>
-                  <td style={{ fontSize:12, color:'var(--text-muted)' }}>{u.joined}</td>
+                  <td style={{ fontWeight:700, textAlign:'center' }}>{u.exams || 0}</td>
+                  <td style={{ fontSize:12, color:'var(--text-muted)' }}>{u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : u.joined}</td>
                   <td>
                     <div style={{ display:'flex', gap:6 }}>
                       <button className="admin-action-btn admin-action-btn--primary" onClick={() => setSelected(u)}>Chi tiết</button>
@@ -127,7 +142,7 @@ export default function AdminUsers() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!loading && users.length === 0 && (
                 <tr><td colSpan={7}><div className="admin-empty"><span>🔍</span><p>Không tìm thấy tài khoản phù hợp</p></div></td></tr>
               )}
             </tbody>
@@ -156,10 +171,10 @@ export default function AdminUsers() {
               </div>
               <div className="admin-form-grid">
                 {[
-                  ['Trường học',   selected.school],
-                  ['Ngày tham gia', selected.joined],
-                  ['Đề đã làm',    `${selected.exams} bài`],
-                  ['Streak',       `${selected.streak} ngày`],
+                  ['Trường học',   selected.school || 'Chưa cập nhật'],
+                  ['Ngày tham gia', selected.joined || (selected.created_at ? new Date(selected.created_at).toLocaleDateString('vi-VN') : '-')],
+                  ['Đề đã làm',    `${selected.exams || 0} bài`],
+                  ['Streak',       `${selected.streak || 0} ngày`],
                 ].map(([label, val]) => (
                   <div key={label}>
                     <div style={{ fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4 }}>{label}</div>
@@ -167,6 +182,41 @@ export default function AdminUsers() {
                   </div>
                 ))}
               </div>
+              
+              {/* Vai trò người dùng */}
+              <div style={{ marginTop:16, paddingTop:16, borderTop:'1px solid var(--gray-100)' }}>
+                <div style={{ fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8 }}>Vai trò</div>
+                <select 
+                  className="admin-form-select"
+                  value={selected.role}
+                  onChange={e => updateAdminRole(selected.id, e.target.value, selected.admin_role)}
+                  style={{ width: '100%' }}
+                >
+                  <option value="student">👤 Sinh viên</option>
+                  <option value="admin">🔑 Admin</option>
+                </select>
+              </div>
+
+              {/* Quyền Admin (chỉ hiển thị nếu là admin) */}
+              {selected.role === 'admin' && (
+                <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid var(--gray-100)' }}>
+                  <div style={{ fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8 }}>Loại Admin</div>
+                  <select 
+                    className="admin-form-select"
+                    value={selected.admin_role || ''}
+                    onChange={e => updateAdminRole(selected.id, 'admin', e.target.value || null)}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">Chưa chọn loại admin</option>
+                    <option value="super">⭐ Super Admin (Toàn quyền)</option>
+                    <option value="content">📝 Content Admin (Quản lý nội dung)</option>
+                  </select>
+                  <p style={{ fontSize:11, color:'var(--text-muted)', marginTop:8 }}>
+                    • <strong>Super Admin:</strong> Toàn bộ quyền, khóa tài khoản, quản lý user<br/>
+                    • <strong>Content Admin:</strong> Chỉ quản lý đề thi, flashcard, câu hỏi
+                  </p>
+                </div>
+              )}
             </div>
             <div className="admin-modal__footer">
               <button className="btn btn-outline" onClick={() => setSelected(null)}>Đóng</button>

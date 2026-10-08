@@ -3,16 +3,20 @@ import './App.css';
 
 import Navbar         from './components/Navbar';
 import Footer         from './components/Footer';
+import { FreemiumProvider } from './contexts/FreemiumContext';
 import HomePage       from './pages/HomePage';
 import CategoriesPage from './pages/CategoriesPage';
-import ExamsPage      from './pages/ExamsPage';
-import ExamPage       from './pages/ExamPage';
+import ExamsPage       from './pages/ExamsPage';
+import EssaysPage      from './pages/EssaysPage';
+import ExamPage        from './pages/ExamPage';
 import LoginPage      from './pages/LoginPage';
 import RegisterPage   from './pages/RegisterPage';
-import EssayPage      from './pages/EssayPage';
+import EssayWritePage from './pages/EssayWritePage';
 import FlashcardPage  from './pages/FlashcardPage';
 import DashboardPage  from './pages/DashboardPage';
 import ProfilePage    from './pages/ProfilePage';
+import PaymentCallbackPage from './pages/PaymentCallbackPage';
+import PaymentHistoryPage from './pages/PaymentHistoryPage';
 
 // Admin
 import AdminGuard     from './admin/AdminGuard';
@@ -49,35 +53,42 @@ function AdminPage({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* ── Public ── */}
-        <Route path="/"                   element={<Layout><HomePage /></Layout>} />
-        <Route path="/on-tap"             element={<Layout><CategoriesPage /></Layout>} />
-        <Route path="/on-tap/:categoryId" element={<Layout><CategoriesPage /></Layout>} />
-        <Route path="/exams"              element={<Layout><ExamsPage /></Layout>} />
-        <Route path="/exam/:examId"       element={<ExamLayout><ExamPage /></ExamLayout>} />
-        <Route path="/tu-luan"            element={<Layout><EssayPage /></Layout>} />
-        <Route path="/flashcard"          element={<Layout><FlashcardPage /></Layout>} />
-        <Route path="/tien-do"            element={<Layout><DashboardPage /></Layout>} />
-        <Route path="/profile"            element={<Layout><ProfilePage /></Layout>} />
+    <FreemiumProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* ── Public ── */}
+          <Route path="/"                   element={<Layout><HomePage /></Layout>} />
+          <Route path="/on-tap"             element={<Layout><CategoriesPage /></Layout>} />
+          <Route path="/on-tap/:categoryId" element={<Layout><CategoriesPage /></Layout>} />
+          <Route path="/exams"              element={<Layout><ExamsPage /></Layout>} />
+          <Route path="/exam/:examId"       element={<ExamLayout><ExamPage /></ExamLayout>} />
+          <Route path="/document/:examId"   element={<ExamLayout><ExamPage /></ExamLayout>} />
+          <Route path="/essays/:essayId"    element={<ExamLayout><EssayWritePage /></ExamLayout>} />
+          <Route path="/essays"             element={<Layout><EssaysPage /></Layout>} />
+          <Route path="/tu-luan"            element={<Layout><EssaysPage /></Layout>} />
+          <Route path="/flashcard"          element={<Layout><FlashcardPage /></Layout>} />
+          <Route path="/tien-do"            element={<Layout><DashboardPage /></Layout>} />
+          <Route path="/profile"            element={<Layout><ProfilePage /></Layout>} />
+          <Route path="/payment/history"    element={<Layout><PaymentHistoryPage /></Layout>} />
+          <Route path="/payment/callback"   element={<Layout><PaymentCallbackPage /></Layout>} />
 
-        {/* ── Auth ── */}
-        <Route path="/login"    element={<AuthLayout><LoginPage /></AuthLayout>} />
-        <Route path="/register" element={<AuthLayout><RegisterPage /></AuthLayout>} />
+          {/* ── Auth ── */}
+          <Route path="/login"    element={<AuthLayout><LoginPage /></AuthLayout>} />
+          <Route path="/register" element={<AuthLayout><RegisterPage /></AuthLayout>} />
 
-        {/* ── Admin (role-guarded) ── */}
-        <Route path="/admin"            element={<AdminPage><AdminDashboard /></AdminPage>} />
-        <Route path="/admin/users"      element={<AdminPage><AdminUsers /></AdminPage>} />
-        <Route path="/admin/exams"      element={<AdminPage><AdminExams /></AdminPage>} />
-        <Route path="/admin/on-tap"     element={<AdminPage><AdminOnTap /></AdminPage>} />
-        <Route path="/admin/tu-luan"    element={<AdminPage><AdminEssay /></AdminPage>} />
-        <Route path="/admin/flashcard"  element={<AdminPage><AdminFlashcard /></AdminPage>} />
+          {/* ── Admin (role-guarded) ── */}
+          <Route path="/admin"            element={<AdminPage><AdminDashboard /></AdminPage>} />
+          <Route path="/admin/users"      element={<AdminPage><AdminUsers /></AdminPage>} />
+          <Route path="/admin/exams"      element={<AdminPage><AdminExams /></AdminPage>} />
+          <Route path="/admin/on-tap"     element={<AdminPage><AdminOnTap /></AdminPage>} />
+          <Route path="/admin/tu-luan"    element={<AdminPage><AdminEssay /></AdminPage>} />
+          <Route path="/admin/flashcard"  element={<AdminPage><AdminFlashcard /></AdminPage>} />
 
-        {/* ── 404 ── */}
-        <Route path="*" element={<Layout><NotFound /></Layout>} />
-      </Routes>
-    </BrowserRouter>
+          {/* ── 404 ── */}
+          <Route path="*" element={<Layout><NotFound /></Layout>} />
+        </Routes>
+      </BrowserRouter>
+    </FreemiumProvider>
   );
 }
 

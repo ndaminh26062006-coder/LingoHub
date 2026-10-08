@@ -18,7 +18,6 @@ return [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),
         'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
-        'scheme' => 'https',
     ],
 
     'postmark' => [
@@ -29,6 +28,13 @@ return [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+    ],
+
+    'sepay' => [
+        'api_key' => env('SEPAY_API_KEY'),
+        'webhook_url' => env('SEPAY_WEBHOOK_URL'),
+        'bank_account' => env('SEPAY_BANK_ACCOUNT'),
+        'account_name' => env('SEPAY_ACCOUNT_NAME'),
     ],
 
 ];

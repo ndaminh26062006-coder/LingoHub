@@ -1,0 +1,257 @@
+.transaction-page {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.transaction-body {
+  flex: 1;
+  background: white;
+  border-radius: 0;
+  padding: 40px;
+  box-shadow: none;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Error Banner ── */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.error-banner span {
+  font-size: 18px;
+}
+
+/* ── Empty State ── */
+.transaction-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.transaction-empty span {
+  display: inline-block;
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.transaction-empty h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.transaction-empty p {
+  color: #666;
+  margin-bottom: 24px;
+}
+
+/* ── Transaction List ── */
+.transaction-list {
+  margin-bottom: 40px;
+}
+
+.transaction-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.2fr 1.2fr 1.2fr;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid #e0e0e0;
+  font-weight: 600;
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transaction-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.2fr 1.2fr 1.2fr;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.transaction-row:last-child {
+  border-bottom: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.transaction-row:hover {
+  background: #fafafa;
+}
+
+.th-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* ── Cell Styles ── */
+.reference-code {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #1B3A6B;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: #e3f2fd;
+  border-radius: 4px;
+}
+
+.plan-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.amount {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+/* ── Status Badges ── */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-success {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.status-pending {
+  background: #fff9c4;
+  color: #f57f17;
+}
+
+.status-failed {
+  background: #ffcccc;
+  color: #c62828;
+}
+
+.status-cancelled {
+  background: #e0e0e0;
+  color: #616161;
+}
+
+.status-unknown {
+  background: #f5f5f5;
+  color: #757575;
+}
+
+.date {
+  color: #999;
+  font-size: 13px;
+}
+
+/* ── Summary Section ── */
+.transaction-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+}
+
+.transaction-summary h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.summary-item {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.summary-item .label {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.summary-item .value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1B3A6B;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  .transaction-body {
+    padding: 20px;
+  }
+
+  .transaction-header,
+  .transaction-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .th-cell {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+  }
+
+  .th-cell::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  .transaction-header {
+    display: none;
+  }
+
+  .transaction-header .th-cell::before {
+    content: none;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,43 +1,54 @@
+import { useState, useEffect } from 'react';
+import { adminApi } from '../services/api';
 import './AdminLayout.css';
 
-// ── Mock data ────────────────────────────────────────────────────────────────
-const STATS = [
-  { icon: '👥', label: 'Tổng tài khoản',  value: '1,248', trend: '+24 tuần này',  color: '#1B3A6B', up: true },
-  { icon: '📝', label: 'Đề thi thử',       value: '142',   trend: '+3 mới',        color: '#F5A623', up: true },
-  { icon: '✍️', label: 'Câu hỏi tự luận', value: '64',    trend: '+8 mới',        color: '#7c3aed', up: true },
-  { icon: '🃏', label: 'Bộ flashcard',     value: '89',    trend: '+12 cộng đồng', color: '#16a34a', up: true },
-  { icon: '🎯', label: 'Lượt thi tuần',    value: '3,420', trend: '+18%',          color: '#0891b2', up: true },
-  { icon: '⭐', label: 'Điểm TB',          value: '7.8',   trend: '-0.2 vs tuần trước', color: '#ef4444', up: false },
-  { icon: '🔥', label: 'Streak TB',        value: '5.2 ngày', trend: '+0.8',       color: '#f59e0b', up: true },
-  { icon: '📚', label: 'Đề ôn tập',        value: '38',    trend: '+2 mới',        color: '#c0392b', up: true },
-];
-
-const RECENT_USERS = [
-  { id: 1, name: 'Nguyễn Minh Tuấn',  email: 'tuan.nm@hcmue.edu.vn',  school: 'ĐH Kinh tế TP.HCM',  joined: '2 giờ trước',   role: 'student', active: true },
-  { id: 2, name: 'Trần Thị Lan Anh',  email: 'anh.ttl@bku.edu.vn',    school: 'ĐH Bách Khoa HN',    joined: '5 giờ trước',   role: 'student', active: true },
-  { id: 3, name: 'Phạm Đức Hùng',     email: 'hung.pd@ftu.edu.vn',    school: 'ĐH Ngoại Thương',    joined: '1 ngày trước',  role: 'student', active: true },
-  { id: 4, name: 'Lê Thị Thu Hà',     email: 'ha.ltt@hlu.edu.vn',     school: 'ĐH Luật TP.HCM',     joined: '1 ngày trước',  role: 'student', active: false },
-  { id: 5, name: 'Vũ Hoàng Nam',      email: 'nam.vh@uit.edu.vn',     school: 'ĐH CNTT TP.HCM',     joined: '2 ngày trước',  role: 'student', active: true },
-];
-
-const RECENT_ACTIVITY = [
-  { id: 1, type: 'exam',       action: 'Thêm đề thi mới',          target: 'Kinh tế vi mô - Đề HK2 2024',  time: '10 phút trước',  icon: '📝', color: '#F5A623' },
-  { id: 2, type: 'user',       action: 'Tài khoản mới đăng ký',    target: 'Nguyễn Minh Tuấn',              time: '2 giờ trước',    icon: '👤', color: '#1B3A6B' },
-  { id: 3, type: 'flashcard',  action: 'Flashcard cộng đồng mới',  target: 'Kinh tế vi mô - Ôn thi',       time: '3 giờ trước',    icon: '🃏', color: '#16a34a' },
-  { id: 4, type: 'essay',      action: 'Câu hỏi tự luận mới',      target: 'Tư tưởng HCM về đạo đức',      time: '5 giờ trước',    icon: '✍️', color: '#7c3aed' },
-  { id: 5, type: 'user',       action: 'Tài khoản bị khóa',        target: 'spam.account@test.com',         time: '1 ngày trước',   icon: '🔒', color: '#ef4444' },
-  { id: 6, type: 'exam',       action: 'Cập nhật đề thi',          target: 'Toán cao cấp A1 - HK1',        time: '1 ngày trước',   icon: '📝', color: '#F5A623' },
-];
-
-// Simple pure-CSS bar chart
-const EXAM_ACTIVITY = [
-  { day: 'T2', count: 312 }, { day: 'T3', count: 445 }, { day: 'T4', count: 389 },
-  { day: 'T5', count: 521 }, { day: 'T6', count: 478 }, { day: 'T7', count: 634 },
-  { day: 'CN', count: 287 },
-];
-const maxCount = Math.max(...EXAM_ACTIVITY.map(d => d.count));
-
 export default function AdminDashboard() {
+  const [apiStats, setApiStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminApi.stats()
+      .then(res => {
+        setApiStats(res.data);
+      })
+      .catch(err => {
+        console.error('Failed to load admin stats:', err);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (!apiStats) {
+    return (
+      <div className="admin-dashboard">
+        <div className="admin-page-header">
+          <div>
+            <h1 className="admin-page-title">Dashboard</h1>
+            <p className="admin-page-sub">Tổng quan hệ thống LingoHub</p>
+          </div>
+        </div>
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
+          {loading ? 'Đang tải dữ liệu...' : 'Không thể tải dữ liệu'}
+        </div>
+      </div>
+    );
+  }
+
+  // Mock data for trends (static)
+  const STATS = [
+    { icon: '', label: 'Tổng tài khoản',  value: apiStats.users?.toLocaleString() || '0', trend: '+24 tuần này',  color: '#1B3A6B', up: true },
+    { icon: '', label: 'Đề thi thử',       value: String(apiStats.exams || 0),   trend: '+3 mới',        color: '#F5A623', up: true },
+    { icon: '', label: 'Câu hỏi tự luận', value: String(apiStats.essays || 0),    trend: '+8 mới',        color: '#7c3aed', up: true },
+    { icon: '', label: 'Bộ flashcard',     value: String(apiStats.flashcard_decks || 0),    trend: '+12 cộng đồng', color: '#16a34a', up: true },
+    { icon: '', label: 'Lượt thi tuần',    value: Number(apiStats.total_attempts || 0).toLocaleString(), trend: '+18%',          color: '#0891b2', up: true },
+    { icon: '', label: 'Điểm TB',          value: '7.8',   trend: '-0.2 vs tuần trước', color: '#ef4444', up: false },
+    { icon: '', label: 'Streak TB',        value: '5.2 ngày', trend: '+0.8',       color: '#f59e0b', up: true },
+    { icon: '', label: 'Đề ôn tập',        value: String(apiStats.published_exams || 0),    trend: '+2 mới',        color: '#c0392b', up: true },
+  ];
+
+  const recentUsers = apiStats.recent_users || [];
+  const examActivity = apiStats.exam_activity || [];
+  const maxCount = examActivity.length > 0 ? Math.max(...examActivity.map(d => d.count)) : 1;
+
   return (
     <div className="admin-dashboard">
       <div className="admin-page-header">
@@ -45,7 +56,7 @@ export default function AdminDashboard() {
           <h1 className="admin-page-title">Dashboard</h1>
           <p className="admin-page-sub">Tổng quan hệ thống LingoHub</p>
         </div>
-        <span className="admin-refresh-hint">🕐 Cập nhật lúc 09:42 AM</span>
+        <span className="admin-refresh-hint">🕐 Cập nhật lúc {new Date().toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' })}</span>
       </div>
 
       {/* ── Stats ── */}
@@ -70,8 +81,8 @@ export default function AdminDashboard() {
             <span className="admin-card__title">📈 Lượt làm bài trong tuần</span>
           </div>
           <div className="admin-mini-chart">
-            {EXAM_ACTIVITY.map(d => {
-              const h = Math.round((d.count / maxCount) * 100);
+            {examActivity.map(d => {
+              const h = maxCount > 0 ? Math.round((d.count / maxCount) * 100) : 0;
               return (
                 <div key={d.day} className="admin-chart-col" title={`${d.count} lượt`}>
                   <span className="admin-chart-val">{d.count}</span>
@@ -90,17 +101,8 @@ export default function AdminDashboard() {
           <div className="admin-card__head">
             <span className="admin-card__title">🔔 Hoạt động gần đây</span>
           </div>
-          <div className="admin-activity-feed">
-            {RECENT_ACTIVITY.map(a => (
-              <div key={a.id} className="admin-activity-item">
-                <div className="aai-icon" style={{ background: `${a.color}15`, color: a.color }}>{a.icon}</div>
-                <div className="aai-body">
-                  <span className="aai-action">{a.action}</span>
-                  <span className="aai-target">{a.target}</span>
-                </div>
-                <span className="aai-time">{a.time}</span>
-              </div>
-            ))}
+          <div className="admin-activity-feed" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+            📋 Chức năng này sẽ sớm có sẵn
           </div>
         </div>
       </div>
@@ -123,19 +125,27 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {RECENT_USERS.map(u => (
-                <tr key={u.id}>
-                  <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{u.name}</td>
-                  <td>{u.email}</td>
-                  <td>{u.school}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{u.joined}</td>
-                  <td>
-                    <span className={`admin-badge ${u.active ? 'admin-badge--green' : 'admin-badge--gray'}`}>
-                      {u.active ? 'Hoạt động' : 'Không hoạt động'}
-                    </span>
+              {recentUsers.length > 0 ? (
+                recentUsers.map(u => (
+                  <tr key={u.id}>
+                    <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>{u.school}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{u.joined}</td>
+                    <td>
+                      <span className={`admin-badge ${u.active ? 'admin-badge--green' : 'admin-badge--gray'}`}>
+                        {u.active ? 'Hoạt động' : 'Không hoạt động'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+                    Chưa có dữ liệu
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

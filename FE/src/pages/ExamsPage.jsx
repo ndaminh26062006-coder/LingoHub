@@ -1,169 +1,251 @@
-import { useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { examList, categories } from '../data/mockData';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { examApi, subjectApi, categoryApi, toArray } from '../services/api';
+import useFreemium from '../hooks/useFreemium';
 import PageHeader from '../components/PageHeader';
+import QuickLikeWidget from '../components/QuickLikeWidget';
+import CommentsModal from '../components/CommentsModal';
+import AccessDeniedModal from '../components/AccessDeniedModal';
 import './ExamsPage.css';
 
-const DIFFICULTIES = ['Tất cả', 'Dễ', 'Trung bình', 'Khó'];
-
 export default function ExamsPage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [search, setSearch] = useState(searchParams.get('q') || '');
-  const [filterCat, setFilterCat] = useState('all');
-  const [filterDiff, setFilterDiff] = useState('Tất cả');
+  const { checkAccess } = useFreemium();
 
-  // Combine all exams from mock (use examList + extend from featuredExams)
-  const allExams = useMemo(() => {
-    const base = [...examList];
-    // pad with more entries for demo
-    const padded = [...base];
-    categories.forEach(cat => {
-      cat.subjects.forEach(sub => {
-        padded.push({
-          id: `auto-${sub.id}`,
-          title: `${sub.name} - Đề luyện tập tổng hợp`,
-          subject: sub.name,
-          categoryId: cat.id,
-          questions: 50,
-          duration: 60,
-          attempts: Math.floor(Math.random() * 3000 + 500),
-          difficulty: ['Dễ', 'Trung bình', 'Khó'][Math.floor(Math.random() * 3)],
-          rating: (4.0 + Math.random() * 0.9).toFixed(1),
-          description: `Bộ đề ôn tập môn ${sub.name} bao gồm các dạng câu hỏi thường gặp.`,
-        });
-      });
-    });
-    return padded;
+  // State for Subjects view
+  const [subjects,      setSubjects]      = useState([]);
+  const [categories,    setCategories]    = useState([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(true);
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [search,        setSearch]        = useState('');
+
+  // State for Exams view (after selecting subject)
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [exams,         setExams]         = useState([]);
+  const [examsLoading,  setExamsLoading]  = useState(false);
+  const [searchExams,   setSearchExams]   = useState('');
+  const [sortTime,      setSortTime]      = useState('newest');
+
+  // State for Comments Modal
+  const [commentsModalOpen, setCommentsModalOpen] = useState(false);
+  const [selectedItemForComments, setSelectedItemForComments] = useState(null);
+
+  // State for Access Denied Modal
+  const [accessDeniedOpen, setAccessDeniedOpen] = useState(false);
+
+  // Load categories and subjects on mount
+  useEffect(() => {
+    categoryApi.list()
+      .then(res => { const arr = toArray(res.data); setCategories(arr); })
+      .catch(err => console.error('Failed to load categories:', err));
+
+    subjectApi.list()
+      .then(res => { const arr = toArray(res.data); setSubjects(arr); setSubjectsLoading(false); })
+      .catch(err => { console.error('Failed to load subjects:', err); setSubjectsLoading(false); });
   }, []);
 
-  const filtered = useMemo(() => {
-    return allExams.filter(e => {
-      const matchSearch = !search || e.title.toLowerCase().includes(search.toLowerCase()) || e.subject.toLowerCase().includes(search.toLowerCase());
-      const matchCat = filterCat === 'all' || e.categoryId === filterCat;
-      const matchDiff = filterDiff === 'Tất cả' || e.difficulty === filterDiff;
-      return matchSearch && matchCat && matchDiff;
-    });
-  }, [allExams, search, filterCat, filterDiff]);
+  // Filter subjects by category and search
+  const filteredSubjects = subjects.filter(subject => {
+    const matchCategory = filterCategory === 'all' || subject.category?.id == filterCategory;
+    const matchSearch = subject.name.toLowerCase().includes(search.toLowerCase()) ||
+                       subject.description?.toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
 
-  const diffColor = { Dễ: 'badge-green', 'Trung bình': 'badge-orange', Khó: 'badge-navy' };
+  // Load exams when subject is selected
+  const selectSubject = useCallback((subject) => {
+    setSelectedSubjectId(subject.id);
+    setSelectedSubject(subject);
+    setSearchExams('');
+    setSortTime('newest');
+    setExamsLoading(true);
+
+    examApi.list({ subject: subject.id })
+      .then(res => { const examsData = res.data.data || res.data || []; setExams(examsData); setExamsLoading(false); })
+      .catch(err => { console.error('Failed to load exams:', err); setExams([]); setExamsLoading(false); });
+  }, []);
+
+  // Filter and sort exams
+  const filteredExams = exams
+    .filter(exam => exam.title.toLowerCase().includes(searchExams.toLowerCase()) || exam.chapter?.toLowerCase().includes(searchExams.toLowerCase()))
+    .sort((a, b) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return sortTime === 'newest' ? timeB - timeA : timeA - timeB;
+    });
+
+  // Handle exam button clicks with freemium check
+  const handleExamClick = useCallback(async (exam, mode) => {
+    const result = await checkAccess('exam');
+    if (result.can_access) {
+      // Check if user has access to this subject
+      const token = localStorage.getItem('lh_token');
+      if (token && selectedSubject?.id) {
+        try {
+          const response = await fetch('http://localhost:8000/api/subscriptions/check-subject', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ subject_id: selectedSubject.id }),
+          });
+          
+          const data = await response.json();
+          if (!data.has_access) {
+            setAccessDeniedOpen(true);
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking subject access:', err);
+        }
+      }
+      
+      navigate(`/exam/${exam.id}?mode=${mode}`);
+    }
+    // If can't access, checkAccess already shows paywall modal
+  }, [navigate, checkAccess, selectedSubject]);
 
   return (
     <div className="exams-page page-enter">
-      <PageHeader
-        title="Tất cả đề thi"
-        subtitle="Chọn đề thi phù hợp và bắt đầu luyện tập"
-      />
+      <PageHeader title="Đề thi thử" subtitle="Chọn môn học để luyện tập" />
 
       <div className="container exams-page__body">
-        {/* Filters sidebar */}
-        <aside className="exams-filters">
-          <div className="filter-group">
-            <label className="filter-label">Tìm kiếm</label>
-            <div className="filter-search">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Tên đề, môn học..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">Khối ngành</label>
-            <div className="filter-options">
-              <button
-                className={`filter-option ${filterCat === 'all' ? 'active' : ''}`}
-                onClick={() => setFilterCat('all')}
-              >
-                Tất cả
-              </button>
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  className={`filter-option ${filterCat === cat.id ? 'active' : ''}`}
-                  onClick={() => setFilterCat(cat.id)}
-                >
-                  {cat.icon} {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">Độ khó</label>
-            <div className="filter-options">
-              {DIFFICULTIES.map(d => (
-                <button
-                  key={d}
-                  className={`filter-option ${filterDiff === d ? 'active' : ''}`}
-                  onClick={() => setFilterDiff(d)}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* Exams list */}
-        <div className="exams-list">
-          <div className="exams-list__header">
-            <p className="exams-list__count">
-              <strong>{filtered.length}</strong> đề thi
-            </p>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="exams-empty">
-              <span>🔍</span>
-              <p>Không tìm thấy đề thi nào phù hợp.</p>
-            </div>
-          ) : (
-            <div className="exams-list__grid">
-              {filtered.map(exam => (
-                <div key={exam.id} className="exam-list-card">
-                  <div className="exam-list-card__top">
-                    <span className={`badge ${diffColor[exam.difficulty] || 'badge-navy'}`}>{exam.difficulty}</span>
-                    <span className="exam-list-card__cat">
-                      {categories.find(c => c.id === exam.categoryId)?.icon}{' '}
-                      {categories.find(c => c.id === exam.categoryId)?.name}
-                    </span>
-                  </div>
-                  <h3 className="exam-list-card__title">{exam.title}</h3>
-                  {exam.description && (
-                    <p className="exam-list-card__desc">{exam.description}</p>
-                  )}
-                  <div className="exam-list-card__meta">
-                    <span>📝 {exam.questions} câu</span>
-                    <span>⏱️ {exam.duration} phút</span>
-                    <span>👥 {Number(exam.attempts).toLocaleString()} lượt</span>
-                    <span>⭐ {exam.rating}</span>
-                  </div>
-                  <div className="exam-list-card__actions">
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => navigate(`/exam/${exam.id}?mode=exam`)}
-                    >
-                      ⏱️ Thi thật
-                    </button>
-                    <button
-                      className="btn btn-outline"
-                      onClick={() => navigate(`/exam/${exam.id}?mode=practice`)}
-                    >
-                      📖 Luyện tập
-                    </button>
-                  </div>
+        {selectedSubjectId === null ? (
+          // SUBJECTS VIEW
+          <>
+            <aside className="exams-filters">
+              <div className="filter-group">
+                <label className="filter-label">Tìm kiếm</label>
+                <div className="filter-search">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input type="text" placeholder="Tên môn học..." value={search} onChange={e => setSearch(e.target.value)} />
                 </div>
-              ))}
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Khối ngành</label>
+                <div className="filter-options">
+                  <button className={`filter-option ${filterCategory === 'all' ? 'active' : ''}`} onClick={() => setFilterCategory('all')}>Tất cả</button>
+                  {categories.map(cat => (
+                    <button key={cat.id} className={`filter-option ${filterCategory == cat.id ? 'active' : ''}`} onClick={() => setFilterCategory(cat.id)}>
+                      {cat.icon} {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            <div className="exams-list" style={{ width: '100%' }}>
+              {subjectsLoading ? (
+                <div className="exams-empty"><span></span><p>Đang tải...</p></div>
+              ) : filteredSubjects.length === 0 ? (
+                <div className="exams-empty"><span></span><p>Không tìm thấy môn học nào.</p></div>
+              ) : (
+                <div className="exams-list__grid">
+                  {filteredSubjects.map(subject => (
+                    <div key={subject.id} className="exam-list-card" onClick={() => selectSubject(subject)} style={{ cursor: 'pointer' }}>
+                      <div className="exam-list-card__top">
+                        <span className="exam-list-card__cat">{subject.category?.icon} {subject.category?.name || ''}</span>
+                      </div>
+                      <h3 className="exam-list-card__title">{subject.name}</h3>
+                      {subject.description && <p className="exam-list-card__desc">{subject.description.substring(0, 100)}{subject.description.length > 100 ? '...' : ''}</p>}
+                      <div className="exam-list-card__actions">
+                        <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); selectSubject(subject); }}>→ Xem đề thi</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          // EXAMS VIEW
+          <>
+            <aside className="exams-filters">
+              <div className="filter-group">
+                <label className="filter-label">Tìm kiếm</label>
+                <div className="filter-search">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input type="text" placeholder="Tên đề thi..." value={searchExams} onChange={e => setSearchExams(e.target.value)} />
+                </div>
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Thời gian ra đề</label>
+                <div className="filter-options">
+                  <button className={`filter-option ${sortTime === 'newest' ? 'active' : ''}`} onClick={() => setSortTime('newest')}>Mới nhất</button>
+                  <button className={`filter-option ${sortTime === 'oldest' ? 'active' : ''}`} onClick={() => setSortTime('oldest')}>Cũ nhất</button>
+                </div>
+              </div>
+            </aside>
+
+            <div className="exams-list" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+                <button className="btn btn-outline" onClick={() => { setSelectedSubjectId(null); setSelectedSubject(null); setExams([]); setSearchExams(''); }}>← Quay lại</button>
+                <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0 }}>Đề thi - {selectedSubject?.name}</h2>
+              </div>
+
+              {examsLoading ? (
+                <div className="exams-empty"><span></span><p>Đang tải...</p></div>
+              ) : filteredExams.length === 0 ? (
+                <div className="exams-empty"><span></span><p>Không tìm thấy đề thi nào.</p></div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {filteredExams.map(exam => (
+                    <div key={exam.id} className="exam-list-card" style={{ display: 'flex', gap: '20px', padding: '20px', alignItems: 'stretch' }}>
+                      <div style={{ flex: 1 }}>
+                        <div className="exam-list-card__top" style={{ marginBottom: '10px' }}>
+                          <span className="exam-list-card__cat">{exam.subject_model?.category?.icon} {exam.subject_model?.category?.name || ''}</span>
+                        </div>
+                        <h3 className="exam-list-card__title" style={{ marginBottom: '10px' }}>{exam.title}</h3>
+                        {exam.chapter && <p className="exam-list-card__desc" style={{ fontSize: '12px', color: 'var(--navy)', fontWeight: '600', marginBottom: '8px' }}>📑 {exam.chapter}</p>}
+                        <div className="exam-list-card__meta" style={{ marginBottom: '12px' }}>
+                          <span>{exam.total_questions ?? exam.questions_count ?? 0} câu</span>
+                          <span>⏱{exam.duration ?? 60} phút</span>
+                          {exam.attempts > 0 && <span>{Number(exam.attempts).toLocaleString()} lượt</span>}
+                        </div>
+                        <QuickLikeWidget 
+                          likeableType="Exam" 
+                          likeableId={exam.id}
+                          onViewComments={() => {
+                            setSelectedItemForComments({ type: 'Exam', id: exam.id, title: exam.title });
+                            setCommentsModalOpen(true);
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <button className="btn btn-primary" onClick={() => handleExamClick(exam, 'exam')}>⏱Thi thật</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Comments Modal */}
+      {selectedItemForComments && (
+        <CommentsModal
+          isOpen={commentsModalOpen}
+          onClose={() => setCommentsModalOpen(false)}
+          commentableType={selectedItemForComments.type}
+          commentableId={selectedItemForComments.id}
+          title={selectedItemForComments.title}
+        />
+      )}
+
+      {/* Access Denied Modal */}
+      <AccessDeniedModal
+        isOpen={accessDeniedOpen}
+        onClose={() => setAccessDeniedOpen(false)}
+        title="Không có quyền truy cập"
+      />
     </div>
   );
 }

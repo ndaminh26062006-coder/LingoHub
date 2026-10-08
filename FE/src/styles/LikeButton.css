@@ -1,0 +1,77 @@
+.like-button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.like-btn,
+.dislike-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: #495057;
+}
+
+.like-btn:hover:not(:disabled),
+.dislike-btn:hover:not(:disabled) {
+  border-color: #dee2e6;
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+/* Active state */
+.like-btn.active {
+  border-color: #28a745;
+  background: #d4edda;
+  color: #155724;
+}
+
+.dislike-btn.active {
+  border-color: #dc3545;
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.like-count,
+.dislike-count {
+  min-width: 20px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.like-btn:disabled,
+.dislike-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.like-button-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 36px;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .like-btn,
+  .dislike-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .like-count,
+  .dislike-count {
+    min-width: 16px;
+  }
+}

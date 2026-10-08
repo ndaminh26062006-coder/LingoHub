@@ -1,47 +1,46 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/logo.png.jpg';
+import logo from '../assets/logo.png-removebg-preview.png';
 import { useAuth } from '../context/AuthContext';
+import { authApi, parseErrors } from '../services/api';
 import './AuthPage.css';
 
 export default function LoginPage() {
-  const { login } = useAuth();
-  const navigate  = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const { setAuth } = useAuth();
+  const navigate    = useNavigate();
+  const [form, setForm]       = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors]   = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const e = {};
-    if (!form.email.trim())               e.email    = 'Vui lòng nhập email.';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Email không hợp lệ.';
-    if (!form.password)                   e.password = 'Vui lòng nhập mật khẩu.';
-    else if (form.password.length < 6)    e.password = 'Mật khẩu tối thiểu 6 ký tự.';
+    if (!form.email.trim())                    e.email    = 'Vui lòng nhập email.';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email   = 'Email không hợp lệ.';
+    if (!form.password)                        e.password = 'Vui lòng nhập mật khẩu.';
+    else if (form.password.length < 6)         e.password = 'Mật khẩu tối thiểu 6 ký tự.';
     return e;
   };
 
-  // Mock accounts for demo
-  const DEMO_ACCOUNTS = [
-    { email: 'admin@lingohub.vn',   password: 'admin123', name: 'Admin LingoHub',     role: 'admin' },
-    { email: 'demo@lingohub.vn',    password: '123456',   name: 'Nguyễn Văn Demo',   role: 'student' },
-    { email: 'sinhvien@uni.edu.vn', password: '123456',   name: 'Trần Thị Sinh Viên', role: 'student' },
-  ];
-
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
-    const matched = DEMO_ACCOUNTS.find(
-      a => a.email === form.email && a.password === form.password
-    );
-    if (!matched) {
-      setErrors({ password: 'Email hoặc mật khẩu không đúng.' });
-      return;
-    }
+    setLoading(true);
     setErrors({});
-    login({ name: matched.name, email: matched.email, role: matched.role });
-    navigate(matched.role === 'admin' ? '/admin' : '/');
+
+    try {
+      const res = await authApi.login({ email: form.email, password: form.password });
+      const { user, token } = res.data;
+      setAuth(user, token);
+      navigate(user.role === 'admin' ? '/admin' : '/');
+    } catch (err) {
+      const parsed = parseErrors(err);
+      setErrors({ password: parsed.email || parsed._global || 'Email hoặc mật khẩu không đúng.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const set = field => e => setForm(f => ({ ...f, [field]: e.target.value }));
@@ -58,10 +57,10 @@ export default function LoginPage() {
           </p>
           <div className="auth-panel__features">
             {[
-              { icon: '📚', text: '10,000+ câu hỏi trắc nghiệm' },
-              { icon: '⏱️', text: 'Thi thử với đồng hồ đếm ngược' },
-              { icon: '💡', text: 'Giải thích chi tiết từng câu' },
-              { icon: '📊', text: 'Theo dõi tiến trình học tập' },
+              { icon: '', text: '10,000+ câu hỏi trắc nghiệm' },
+              { icon: '', text: 'Thi thử với đồng hồ đếm ngược' },
+              { icon: '', text: 'Giải thích chi tiết từng câu' },
+              { icon: '', text: 'Theo dõi tiến trình học tập' },
             ].map(f => (
               <div key={f.text} className="auth-feature">
                 <span className="auth-feature__icon">{f.icon}</span>
@@ -85,6 +84,12 @@ export default function LoginPage() {
           </Link>
 
           <div className="auth-form__head">
+            <Link to="/" className="auth-back-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
+              Về trang chủ
+            </Link>
             <h1 className="auth-form__title">Đăng nhập</h1>
             <p className="auth-form__subtitle">
               Chưa có tài khoản?{' '}
@@ -154,13 +159,13 @@ export default function LoginPage() {
               {errors.password && <p className="form-error">{errors.password}</p>}
             </div>
 
-            <button type="submit" className="btn btn-primary auth-submit-btn">
-              Đăng nhập
+            <button type="submit" className="btn btn-primary auth-submit-btn" disabled={loading}>
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
 
             {/* Demo account hint */}
             <div className="demo-hint">
-              <span className="demo-hint__icon">💡</span>
+              <span className="demo-hint__icon"></span>
               <div className="demo-hint__text">
                 <div style={{ marginBottom: 6 }}>
                   <strong>Sinh viên:</strong>{' '}
