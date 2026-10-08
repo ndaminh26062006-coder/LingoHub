@@ -18,7 +18,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
 
   const plans = [
     {
-      id: '1month',
+      id: '1subject',
       label: '1 Môn Lẻ',
       price: 19,
       unit: 'K VND',
@@ -35,7 +35,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
       ],
     },
     {
-      id: '3month',
+      id: '3subject',
       label: '3 Môn Lẻ',
       price: 39,
       unit: 'K VND',
@@ -52,7 +52,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
       ],
     },
     {
-      id: '5month',
+      id: '5subject',
       label: '5 Môn Lẻ',
       price: 49,
       unit: 'K VND',
@@ -468,9 +468,9 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
                         disabled={
                           !selectedSubjects.includes(subject.id) &&
                           selectedSubjects.length >= (
-                            selectedPlan === '1month' ? 1 :
-                            selectedPlan === '3month' ? 3 :
-                            selectedPlan === '5month' ? 5 : 999
+                            selectedPlan === '1subject' ? 1 :
+                            selectedPlan === '3subject' ? 3 :
+                            selectedPlan === '5subject' ? 5 : 999
                           )
                         }
                       />
