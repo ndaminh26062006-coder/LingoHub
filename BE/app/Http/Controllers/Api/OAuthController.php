@@ -149,7 +149,8 @@ class OAuthController extends Controller
      */
     private function redirectToFrontend(string $status, ?string $error = null, ?string $token = null, ?User $user = null)
     {
-        $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+        // $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+        $frontendUrl = config('app.frontend_url', 'https://lingohub.io.vn');
         
         if ($status === 'success' && $token && $user) {
             $url = $frontendUrl . '/auth/callback?status=success&token=' . urlencode($token) . '&user=' . urlencode(json_encode([
