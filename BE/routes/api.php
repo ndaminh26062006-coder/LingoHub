@@ -29,6 +29,12 @@ use App\Http\Controllers\Api\LeaderboardController;
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login',    [AuthController::class, 'login']);
+    
+    // OAuth routes
+    Route::post('google/redirect', 'App\Http\Controllers\Api\OAuthController@redirectToGoogle');
+    Route::get('google/callback', 'App\Http\Controllers\Api\OAuthController@handleGoogleCallback');
+    Route::post('facebook/redirect', 'App\Http\Controllers\Api\OAuthController@redirectToFacebook');
+    Route::get('facebook/callback', 'App\Http\Controllers\Api\OAuthController@handleFacebookCallback');
 });
 
 // ── Auth (protected) ───────────────────────────────────────────────────────

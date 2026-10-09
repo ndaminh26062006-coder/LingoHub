@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: localhost:3306
--- Thời gian đã tạo: Th10 08, 2026 lúc 12:55 PM
+-- Thời gian đã tạo: Th10 09, 2026 lúc 03:25 PM
 -- Phiên bản máy phục vụ: 8.0.30
 -- Phiên bản PHP: 8.5.11
 
@@ -63,6 +63,14 @@ CREATE TABLE `comments` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `comments`
+--
+
+INSERT INTO `comments` (`id`, `user_id`, `commentable_type`, `commentable_id`, `content`, `created_at`, `updated_at`) VALUES
+(1, 5, 'Document', 5, 'hay', '2026-10-08 09:50:16', '2026-10-08 09:50:16'),
+(2, 5, 'Document', 5, 'quá hay', '2026-10-08 09:50:21', '2026-10-08 09:50:21');
 
 -- --------------------------------------------------------
 
@@ -131,7 +139,7 @@ INSERT INTO `essay_questions` (`id`, `subject_id`, `title`, `chapter`, `question
 (4, 4, 'Câu hỏi số 1 - Trình bày khái niệm Quản trị theo James Stoner & Stephen Robbins. Phân tích 4 chức năng cơ bản của quản trị (Hoạch định, Tổ chức, Lãnh đạo, Kiểm soát)', NULL, 'Trình bày khái niệm Quản trị theo James Stoner & Stephen Robbins. Phân tích 4 chức năng cơ bản của quản trị (Hoạch định, Tổ chức, Lãnh đạo, Kiểm soát) và nêu rõ vai trò của từng chức năng đối với sự vận hành của một tổ chức.', NULL, NULL, 10, 'Trung bình', 'published', 0, 1, '2026-10-08 02:45:46', '2026-10-08 02:45:46'),
 (5, 4, 'Câu hỏi số 2 - Giải thích câu nói: \"Hoạt động quản trị là cần thiết đối với mọi tổ chức\". Phân biệt hai khái niệm Kết quả và Hiệu quả trong quản trị, đồng thời nêu c', NULL, 'Giải thích câu nói: \"Hoạt động quản trị là cần thiết đối với mọi tổ chức\". Phân biệt hai khái niệm Kết quả và Hiệu quả trong quản trị, đồng thời nêu các trường hợp cụ thể để nâng cao hiệu quả quản trị trong thực tế.', NULL, NULL, 10, 'Trung bình', 'published', 0, 1, '2026-10-08 02:46:16', '2026-10-08 02:46:16'),
 (6, 6, 'Câu số 1 - Trình bày và so sánh sự khác biệt cơ bản giữa cách hiểu về rủi ro theo trường phái truyền thống và trường phái trung hòa. Ý nghĩa của trường phái trun', NULL, 'Trình bày và so sánh sự khác biệt cơ bản giữa cách hiểu về rủi ro theo trường phái truyền thống và trường phái trung hòa. Ý nghĩa của trường phái trung hòa đối với tư duy của nhà quản trị hiện đại là gì?', '• Trường phái truyền thống: xem rủi ro chủ yếu là sự không may, tổn thất hoặc nguy hiểm có thể xảy ra; trọng tâm là nhận diện và hạn chế tổn thất.\n• Trường phái trung hòa: xem rủi ro là sự không chắc chắn/khả năng sai lệch giữa kết quả thực tế và kết quả kỳ vọng, có thể dẫn đến tổn thất hoặc kết quả thuận lợi.\n• Ý nghĩa: nhà quản trị không chỉ tìm cách né tránh tổn thất mà còn phải nhận diện, đo lường, kiểm soát và khai thác những khả năng có thể tạo thành cơ hội.', NULL, 40, 'Trung bình', 'published', 0, 1, '2026-10-08 03:03:39', '2026-10-08 03:03:39'),
-(7, 6, 'Câu số 2 - Phân biệt rủi ro thuần túy và rủi ro suy đoán. Nêu 2 ví dụ thực tế cho mỗi loại rủi ro này trong hoạt động của một doanh nghiệp xuất nhập khẩu.', 'CHƯƠNG 1: TỔNG QUAN VỀ RỦI RO', 'Phân biệt rủi ro thuần túy và rủi ro suy đoán. Nêu 2 ví dụ thực tế cho mỗi loại rủi ro này trong hoạt động của một doanh nghiệp xuất nhập khẩu.', '• Rủi ro thuần túy: chỉ có khả năng xảy ra tổn thất hoặc không xảy ra tổn thất, không tạo cơ hội sinh lợi. Ví dụ: hàng hóa xuất khẩu bị cháy; kho hàng bị ngập.\n• Rủi ro suy đoán: có thể dẫn đến tổn thất, hòa vốn hoặc có lợi ích. Ví dụ: doanh nghiệp đầu tư mở rộng sang một thị trường mới; doanh nghiệp kinh doanh ngoại tệ để tìm kiếm lợi nhuận.\n• Điểm phân biệt cốt lõi: rủi ro thuần túy không có khả năng tạo lợi ích, còn rủi ro suy đoán có cả khả năng đạt kết quả có lợi.', NULL, 40, 'Trung bình', 'published', 0, 1, '2026-10-08 03:04:07', '2026-10-08 03:05:22');
+(7, 6, 'Câu hỏi số 2', 'CHƯƠNG 1: TỔNG QUAN VỀ RỦI RO', 'Phân biệt rủi ro thuần túy và rủi ro suy đoán. Nêu 2 ví dụ thực tế cho mỗi loại rủi ro này trong hoạt động của một doanh nghiệp xuất nhập khẩu.', '• Rủi ro thuần túy: chỉ có khả năng xảy ra tổn thất hoặc không xảy ra tổn thất, không tạo cơ hội sinh lợi. Ví dụ: hàng hóa xuất khẩu bị cháy; kho hàng bị ngập.\n• Rủi ro suy đoán: có thể dẫn đến tổn thất, hòa vốn hoặc có lợi ích. Ví dụ: doanh nghiệp đầu tư mở rộng sang một thị trường mới; doanh nghiệp kinh doanh ngoại tệ để tìm kiếm lợi nhuận.\n• Điểm phân biệt cốt lõi: rủi ro thuần túy không có khả năng tạo lợi ích, còn rủi ro suy đoán có cả khả năng đạt kết quả có lợi.', NULL, 40, 'Trung bình', 'published', 0, 1, '2026-10-08 03:04:07', '2026-10-09 04:37:28');
 
 -- --------------------------------------------------------
 
@@ -169,7 +177,12 @@ INSERT INTO `exams` (`id`, `subject_id`, `chapter`, `title`, `description`, `que
 (7, 5, NULL, 'Đề thi số 1', NULL, 0, 3, 0, 75, 'exam', 'published', 1, 0.0, 1, '2026-10-08 02:50:46', '2026-10-08 04:30:15'),
 (8, 5, NULL, 'Đề thi số 2', NULL, 0, 3, 0, 75, 'exam', 'published', 1, 0.0, 1, '2026-10-08 02:53:14', '2026-10-08 04:30:55'),
 (9, 4, NULL, 'Đề thi số 3', NULL, 0, 0, 0, 75, 'exam', 'draft', 0, 0.0, 1, '2026-10-08 02:58:16', '2026-10-08 02:58:16'),
-(10, 4, NULL, 'Đề thi số 3', NULL, 0, 3, 0, 75, 'exam', 'published', 0, 0.0, 1, '2026-10-08 02:58:21', '2026-10-08 02:58:51');
+(10, 4, NULL, 'Đề thi số 3', NULL, 0, 3, 0, 75, 'exam', 'published', 0, 0.0, 1, '2026-10-08 02:58:21', '2026-10-08 02:58:51'),
+(11, 7, NULL, 'Đề thi số 1', NULL, 15, 2, 0, 60, 'exam', 'published', 0, 0.0, 4, '2026-10-09 03:28:23', '2026-10-09 03:53:16'),
+(12, 7, NULL, 'Đề thi số 2', NULL, 15, 3, 0, 60, 'exam', 'published', 0, 0.0, 4, '2026-10-09 03:50:03', '2026-10-09 03:50:52'),
+(13, 7, NULL, 'Đề thi số 3', NULL, 15, 0, 0, 60, 'exam', 'draft', 0, 0.0, 4, '2026-10-09 04:01:57', '2026-10-09 04:01:57'),
+(14, 7, NULL, 'Đề thi số 3', NULL, 15, 3, 0, 60, 'exam', 'draft', 0, 0.0, 4, '2026-10-09 04:02:11', '2026-10-09 06:44:54'),
+(15, 7, NULL, 'Đề thi số 4', NULL, 15, 3, 0, 60, 'exam', 'published', 0, 0.0, 1, '2026-10-09 06:43:47', '2026-10-09 06:45:34');
 
 -- --------------------------------------------------------
 
@@ -305,7 +318,79 @@ INSERT INTO `exam_questions` (`id`, `exam_id`, `order`, `content`, `type`, `opti
 (256, 8, 3, 'rong một doanh nghiệp sản xuất, nhà tư bản đầu tư lượng vốn ban đầu là 240.000 USD, trong đó chi phí tư bản bất biến (c) gấp 3 lần chi phí tư bản khả biến (v). Doanh nghiệp hiện đang thuê 400 công nhân làm việc, với tỷ suất giá trị thặng dư ($m\'$) đạt 200%.', 'essay', NULL, '[{\"id\": \"a\", \"content\": \"Hãy tính tiền lương của mỗi công nhân, tổng khối lượng giá trị thặng dư ($M$) và tổng giá trị của toàn bộ hàng hóa do doanh nghiệp tạo ra.\"}, {\"id\": \"b\", \"content\": \"Nếu nhà tư bản quyết định mở rộng sản xuất, nâng tổng tư bản đầu tư lên thành 360.000 USD và cải tiến kỹ thuật làm cấu tạo hữu cơ ($c/v$) tăng lên thành 8/1. Biết rằng tiền lương trả cho mỗi công nhân không đổi và tỷ suất giá trị thặng dư vẫn giữ nguyên 200%, hãy xác định số lượng công nhân mà doanh nghiệp cần sử dụng và khối lượng giá trị thặng dư thu được lúc này.\"}]', NULL, NULL, 0, '2026-10-08 02:53:42', '2026-10-08 02:53:42'),
 (257, 10, 1, 'Trình bày phương pháp sản xuất giá trị thặng dư tuyệt đối và phương pháp sản xuất giá trị thặng dư tương đối dưới chủ nghĩa tư bản. Tại sao nói giá trị thặng dư siêu ngạch là hình thức biến tướng của giá trị thặng dư tương đối?', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-08 02:58:51', '2026-10-08 02:58:51'),
 (258, 10, 2, 'Phân tích nội dung và tác dụng của quy luật giá trị trong nền kinh tế hàng hóa. Doanh nghiệp Việt Nam cần vận dụng quy luật này như thế nào để nâng cao năng lực cạnh tranh và thu được lợi nhuận trong điều kiện hội nhập kinh tế quốc tế hiện nay?', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-08 02:58:51', '2026-10-08 02:58:51'),
-(259, 10, 3, 'Một xí nghiệp có 200 công nhân làm thuê. Ban đầu, ngày làm việc là 10 giờ, trong 1 giờ lao động mỗi công nhân tạo ra lượng giá trị mới là 6 USD. Tỷ suất giá trị thặng dư ($m\'$) hiện tại là 200%, tiền lương mỗi ngày của 1 công nhân là 20 USD.', 'essay', NULL, '[{\"id\": \"a\", \"content\": \"Xác định thời gian lao động tất yếu, thời gian lao động thặng dư và độ dài ngày lao động của xí nghiệp (xem xét tính hợp lý với dữ kiện đề bài). Tính tổng khối lượng giá trị thặng dư ($M$) mà nhà tư bản thu được trong 1 ngày từ 200 công nhân.\"}, {\"id\": \"b\", \"content\": \"Nếu nhà tư bản quyết định giảm thời gian của ngày lao động xuống còn 9 giờ nhưng tăng cường độ lao động lên 50%, đồng thời giữ nguyên tiền lương công nhân (giá trị sức lao động không đổi). Hãy xác định tỷ suất giá trị thặng dư mới ($m\'\'$) và khối lượng giá trị thặng dư mới ($M\'$) nhà tư bản thu được. Nhà tư bản đã sử dụng phương pháp bóc lột giá trị thặng dư nào?\"}]', NULL, NULL, 0, '2026-10-08 02:58:51', '2026-10-08 02:58:51');
+(259, 10, 3, 'Một xí nghiệp có 200 công nhân làm thuê. Ban đầu, ngày làm việc là 10 giờ, trong 1 giờ lao động mỗi công nhân tạo ra lượng giá trị mới là 6 USD. Tỷ suất giá trị thặng dư ($m\'$) hiện tại là 200%, tiền lương mỗi ngày của 1 công nhân là 20 USD.', 'essay', NULL, '[{\"id\": \"a\", \"content\": \"Xác định thời gian lao động tất yếu, thời gian lao động thặng dư và độ dài ngày lao động của xí nghiệp (xem xét tính hợp lý với dữ kiện đề bài). Tính tổng khối lượng giá trị thặng dư ($M$) mà nhà tư bản thu được trong 1 ngày từ 200 công nhân.\"}, {\"id\": \"b\", \"content\": \"Nếu nhà tư bản quyết định giảm thời gian của ngày lao động xuống còn 9 giờ nhưng tăng cường độ lao động lên 50%, đồng thời giữ nguyên tiền lương công nhân (giá trị sức lao động không đổi). Hãy xác định tỷ suất giá trị thặng dư mới ($m\'\'$) và khối lượng giá trị thặng dư mới ($M\'$) nhà tư bản thu được. Nhà tư bản đã sử dụng phương pháp bóc lột giá trị thặng dư nào?\"}]', NULL, NULL, 0, '2026-10-08 02:58:51', '2026-10-08 02:58:51'),
+(274, 12, 1, 'Một số phần tử cơ hội, xét lại đang phủ nhận thuyết Mác – Lênin về sứ mệnh lịch sử của giai cấp công nhân, họ nhận định giai cấp công nhân ngày nay thế nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Đã “teo đi”, đã “tan biến” vào giai tầng xã hội khác\"}, {\"id\": \"B\", \"text\": \"Đã “phình lên”, đã “kết tinh” thành giai cấp công nhân hùng mạnh\"}, {\"id\": \"C\", \"text\": \"Đã trở thành giai cấp tư sản\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C đều sai\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(275, 12, 2, 'Thời đại ngày nay là thời đại của nền “văn minh trí tuệ”, của “kinh tế tri thức”, do vậy vai trò của tầng lớp nào ngày càng trở nên quan trọng?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Giai cấp tư sản\"}, {\"id\": \"B\", \"text\": \"Tầng lớp trí thức\"}, {\"id\": \"C\", \"text\": \"Giai cấp nông dân\"}, {\"id\": \"D\", \"text\": \"Tiểu tư sản\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(276, 12, 3, 'Trong xã hội, trí thức được gọi là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Giai cấp đặc biệt\"}, {\"id\": \"B\", \"text\": \"Giai cấp thuần nhất\"}, {\"id\": \"C\", \"text\": \"Tầng lớp xã hội đặc biệt và không thuần nhất\"}, {\"id\": \"D\", \"text\": \"Tầng lớp xã hội độc lập\"}]', NULL, 'C', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(277, 12, 4, 'Điều kiện tiên quyết để xây dựng thành công chủ nghĩa xã hội là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Giữ vững và tăng cường sự lãnh đạo của Đảng Cộng sản\"}, {\"id\": \"B\", \"text\": \"Củng cố khối đại đoàn kết toàn dân\"}, {\"id\": \"C\", \"text\": \"Mở rộng hợp tác quốc tế\"}, {\"id\": \"D\", \"text\": \"Giữ vững độc lập dân tộc và định hướng XHCN\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(278, 12, 5, 'Cơ sở kinh tế của nhà nước xã hội chủ nghĩa là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Chế độ công hữu về tư liệu sản xuất chủ yếu\"}, {\"id\": \"B\", \"text\": \"Chế độ tư hữu về tư liệu sản xuất\"}, {\"id\": \"C\", \"text\": \"Chế độ sở hữu hỗn hợp\"}, {\"id\": \"D\", \"text\": \"Kinh tế thị trường tự do\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(279, 12, 6, 'Bản chất tư tưởng - văn hóa của nền dân chủ XHCN lấy hệ tư tưởng nào làm nền tảng?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Tư tưởng Hồ Chí Minh\"}, {\"id\": \"B\", \"text\": \"Chủ nghĩa Mác – Lênin\"}, {\"id\": \"C\", \"text\": \"Tư tưởng dân chủ tư sản\"}, {\"id\": \"D\", \"text\": \"Nho giáo và các tôn giáo lớn\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(280, 12, 7, 'Hình thức dân chủ nào là hình thức nhân dân trực tiếp thể hiện ý chí và nguyện vọng của mình?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Dân chủ trực tiếp\"}, {\"id\": \"B\", \"text\": \"Dân chủ đại diện\"}, {\"id\": \"C\", \"text\": \"Dân chủ gián tiếp\"}, {\"id\": \"D\", \"text\": \"Dân chủ ủy quyền\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(281, 12, 8, 'Chức năng cơ bản nhất của nhà nước xã hội chủ nghĩa là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Chức năng trấn áp\"}, {\"id\": \"B\", \"text\": \"Chức năng tổ chức và xây dựng\"}, {\"id\": \"C\", \"text\": \"Chức năng đối ngoại\"}, {\"id\": \"D\", \"text\": \"Chức năng quản lý hành chính\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(282, 12, 9, 'Yếu tố nào giữ vai trò quyết định đối với sự biến đổi của cơ cấu xã hội – giai cấp?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Cơ cấu kinh tế\"}, {\"id\": \"B\", \"text\": \"Cơ cấu chính trị\"}, {\"id\": \"C\", \"text\": \"Cơ cấu văn hóa\"}, {\"id\": \"D\", \"text\": \"Cơ cấu dân số\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(283, 12, 10, 'Liên minh giai cấp, tầng lớp trong thời kỳ quá độ lên chủ nghĩa xã hội ở Việt Nam gồm những lực lượng cơ bản nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Công nhân, nông dân và tư sản\"}, {\"id\": \"B\", \"text\": \"Công nhân, nông dân và tri thức\"}, {\"id\": \"C\", \"text\": \"Công nhân, nông dân và tiểu thương\"}, {\"id\": \"D\", \"text\": \"Công nhân, trí thức và doanh nhân\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(284, 12, 11, 'Trong thời kỳ quá độ lên CNXH ở Việt Nam, nội dung nào của liên minh giai cấp giữ vai trò quyết định nhất?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Nội dung kinh tế\"}, {\"id\": \"B\", \"text\": \"Nội dung chính trị\"}, {\"id\": \"C\", \"text\": \"Nội dung văn hóa – xã hội\"}, {\"id\": \"D\", \"text\": \"Nội dung tư tưởng\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(285, 12, 12, 'Đặc trưng cơ bản về mặt dân tộc là cộng đồng người có chung:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Lãnh thổ, ngôn ngữ, phương thức sinh hoạt kinh tế\"}, {\"id\": \"B\", \"text\": \"Nét văn hóa và tâm lý dân tộc\"}, {\"id\": \"C\", \"text\": \"Sự quản lý của một nhà nước (đối với dân tộc - quốc gia)\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(286, 12, 13, 'Theo chủ nghĩa Mác – Lênin, tôn giáo là một hiện tượng xã hội mang tính:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Lịch sử\"}, {\"id\": \"B\", \"text\": \"Quần chúng\"}, {\"id\": \"C\", \"text\": \"Chính trị\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52');
+INSERT INTO `exam_questions` (`id`, `exam_id`, `order`, `content`, `type`, `options`, `sub_questions`, `correct_answer`, `explanation`, `difficulty`, `created_at`, `updated_at`) VALUES
+(287, 12, 14, 'Gia đình thực hiện chức năng cơ bản nào để duy trì sự tồn tại và phát triển của loài người?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Tái sản xuất ra con người\"}, {\"id\": \"B\", \"text\": \"Nuôi dưỡng và giáo dục\"}, {\"id\": \"C\", \"text\": \"Thỏa mãn nhu cầu tâm sinh lý\"}, {\"id\": \"D\", \"text\": \"Quản lý kinh tế gia đình\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(288, 12, 15, 'Cơ sở xây dựng gia đình trong thời kỳ quá độ lên chủ nghĩa xã hội bao gồm:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Cơ sở kinh tế - xã hội\"}, {\"id\": \"B\", \"text\": \"Cơ sở chính trị - xã hội\"}, {\"id\": \"C\", \"text\": \"Cơ sở văn hóa\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(289, 12, 16, 'Ưu điểm và hạn chế của tư tưởng xã hội chủ nghĩa không tưởng phê phán', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(290, 12, 17, 'Tại sao quá độ lên chủ nghĩa xã hội bỏ qua chế độ tư bản chủ nghĩa ở Việt Nam là sự lựa chọn dứt khoát và đúng đắn?', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(291, 12, 18, 'Vị trí của gia đình trong xã hội', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 03:50:52', '2026-10-09 03:50:52'),
+(292, 11, 1, 'Những nhà tư tưởng tiêu biểu của chủ nghĩa xã hội không tưởng phê phán đầu thế kỷ XIX?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Grắccơ Babớp, Xanh Ximông, Sáclơ Phuriê\"}, {\"id\": \"B\", \"text\": \"Xanh Ximông, Sáclơ Phuriê, G. Mably\"}, {\"id\": \"C\", \"text\": \"Xanh Ximông, Sáclơ Phuriê, Rôbớt Ôoen\"}, {\"id\": \"D\", \"text\": \"Xanh Ximông, Giăng Mêliê, Rôbớt Ôoen\"}]', NULL, 'C', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(293, 11, 2, 'Nhà tư tưởng xã hội chủ nghĩa nào đã tiến hành thực nghiệm xã hội cộng sản trong lòng xã hội tư bản?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Xanh Ximông\"}, {\"id\": \"B\", \"text\": \"Sáclơ Phuriê\"}, {\"id\": \"C\", \"text\": \"Grắccơ Babớp\"}, {\"id\": \"D\", \"text\": \"Rôbớt Ôoen\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(294, 11, 3, 'Những yếu tố tư tưởng XHCN được xuất hiện từ khi nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Chế độ tư bản chủ nghĩa ra đời\"}, {\"id\": \"B\", \"text\": \"Sự xuất hiện chế độ tư hữu, xuất hiện giai cấp thống trị và bóc lột\"}, {\"id\": \"C\", \"text\": \"Sự xuất hiện giai cấp công nhân\"}, {\"id\": \"D\", \"text\": \"Thời cộng sản nguyên thủy\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(295, 11, 4, 'Đối tượng nghiên cứu của chủ nghĩa xã hội khoa học là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Là những quy luật và tính quy luật chính trị - xã hội của quá trình phát sinh, hình thành và phát triển hình thái kinh tế - xã hội cộng sản chủ nghĩa.\"}, {\"id\": \"B\", \"text\": \"Là những quy luật kinh tế hình thành, phát triển và hoàn thiện của các hình thái kinh tế - xã hội.\"}, {\"id\": \"C\", \"text\": \"Là những quy luật và tính quy luật chính trị - xã hội của quá trình phát sinh, hình thành và phát triển hình thái kinh tế - xã hội tư bản chủ nghĩa.\"}, {\"id\": \"D\", \"text\": \"Cả a, b và c.\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(296, 11, 5, 'Hạn chế của chủ nghĩa xã hội không tưởng trước Mác là…', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Chưa thấy được sứ mệnh lịch sử của giai cấp công nhân\"}, {\"id\": \"B\", \"text\": \"Chưa chỉ ra được con đường đấu tranh cách mạng\"}, {\"id\": \"C\", \"text\": \"Không luận chứng được một cách khoa học về bản chất của chủ nghĩa tư bản và quy luật phát triển của chủ nghĩa tư bản\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C.\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(297, 11, 6, 'Nguồn gốc lý luận trực tiếp ra đời chủ nghĩa xã hội khoa học là…', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Triết học cổ điển Đức\"}, {\"id\": \"B\", \"text\": \"Kinh tế chính trị học cổ điển Anh\"}, {\"id\": \"C\", \"text\": \"Chủ nghĩa xã hội không tưởng – phê phán\"}, {\"id\": \"D\", \"text\": \"Cả a, b và c\"}]', NULL, 'C', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(298, 11, 7, 'Chọn phương án đúng nhất: Chủ nghĩa Mác – Lê-nin được cấu thành từ ba bộ phận lý luận cơ bản là:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Chủ nghĩa xã hội không tưởng, Triết học Mác – Lê-nin, Kinh tế chính trị học Mác – Lê-nin\"}, {\"id\": \"B\", \"text\": \"Triết học Mác – Lê-nin, Kinh tế chính trị học Mác – Lê-nin, Chủ nghĩa xã hội khoa học.\"}, {\"id\": \"C\", \"text\": \"Kinh tế chính trị học, Chủ nghĩa xã hội không tưởng, Triết học Mác – Lê-nin\"}, {\"id\": \"D\", \"text\": \"Triết học cổ điển Đức, Kinh tế chính trị học cổ điển Anh, Chủ nghĩa xã hội không tưởng Pháp\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(299, 11, 8, 'Nhà nước nào mà Lê-nin gọi là “nửa nhà nước”?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Nhà nước chủ nô\"}, {\"id\": \"B\", \"text\": \"Nhà nước tư sản\"}, {\"id\": \"C\", \"text\": \"Nhà nước phong kiến\"}, {\"id\": \"D\", \"text\": \"Nhà nước XHCN\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(300, 11, 9, 'Tác phẩm đánh dấu sự ra đời của chủ nghĩa xã hội khoa học là tác phẩm…', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Tư bản\"}, {\"id\": \"B\", \"text\": \"Chống Đuyrinh\"}, {\"id\": \"C\", \"text\": \"Tuyên ngôn của Đảng cộng sản\"}, {\"id\": \"D\", \"text\": \"Biện chứng của tự nhiên\"}]', NULL, 'C', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(301, 11, 10, 'Chọn ý đúng trong các ý sau về nhà nước…', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Đến giai đoạn cao của xã hội CSCN nhà nước tự tiêu vong\"}, {\"id\": \"B\", \"text\": \"Đến giai đoạn cao của xã hội CSCN nhà nước vẫn còn là nhà nước kiểu mới\"}, {\"id\": \"C\", \"text\": \"Đến giai đoạn cao của xã hội CSCN nhà nước vẫn sẽ còn duy trì\"}, {\"id\": \"D\", \"text\": \"Đến giai đoạn cao của xã hội CSCN nhà nước là nửa nhà nước\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(302, 11, 11, 'Nguyên tắc phân phối trong giai đoạn cao của hình thái CSCN là:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Làm theo năng lực, hưởng theo lao động\"}, {\"id\": \"B\", \"text\": \"Làm theo năng lực, hưởng theo nhu cầu\"}, {\"id\": \"C\", \"text\": \"Làm ít hưởng ít, làm nhiều hưởng nhiều\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều sai.\"}]', NULL, 'B', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(303, 11, 12, 'Những nguyên tắc cơ bản của chủ nghĩa Mác – Lê-nin trong việc giải quyết vấn đề dân tộc là:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Các dân tộc hoàn toàn bình đẳng\"}, {\"id\": \"B\", \"text\": \"Các dân tộc được quyền tự quyết\"}, {\"id\": \"C\", \"text\": \"Liên hiệp công nhân tất cả các dân tộc\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều đúng\"}]', NULL, 'D', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(304, 11, 13, 'Chọn phương án đúng nhất: Sự ra đời và phát triển của giai cấp công nhân hiện đại gắn liền với sự ra đời và phát triển của:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Sản xuất thủ công\"}, {\"id\": \"B\", \"text\": \"Công trường thủ công\"}, {\"id\": \"C\", \"text\": \"Nền đại công nghiệp tư bản chủ nghĩa\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C đều sai.\"}]', NULL, 'C', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(305, 11, 14, 'Nội dung sứ mệnh lịch sử của giai cấp công nhân là:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Xóa bỏ chế độ chiếm hữu nô lệ, xây dựng chế độ phong kiến\"}, {\"id\": \"B\", \"text\": \"Xóa bỏ chế độ phong kiến, xây dựng chế độ tư bản chủ nghĩa\"}, {\"id\": \"C\", \"text\": \"Xóa bỏ chế độ tư bản chủ nghĩa, xây dựng chế độ chủ nghĩa xã hội, chủ nghĩa cộng sản\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C đều sai\"}]', NULL, 'C', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(306, 11, 15, 'Trong chủ nghĩa tư bản, giai cấp công nhân đại biểu cho phương thức sản xuất:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Tiên tiến\"}, {\"id\": \"B\", \"text\": \"Lạc hậu\"}, {\"id\": \"C\", \"text\": \"Manh mún\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'A', NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(307, 11, 16, 'Phân tích những đặc trưng cơ bản của chủ nghĩa xã hội, liên hệ với thực tiễn chủ nghĩa xã hội ở Việt Nam', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(308, 11, 17, 'Phân tích nội dung Cương lĩnh Dân tộc của V.I.Lênin, liên hệ với chính sách dân tộc của Đảng và Nhà nước Việt Nam trong giai đoạn hiện nay', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 03:53:16', '2026-10-09 03:53:16'),
+(309, 14, 1, 'Tiền đề kinh tế – xã hội dẫn đến sự ra đời của chủ nghĩa xã hội khoa học là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Sự phát triển của lực lượng sản xuất trong nền đại công nghiệp tư bản chủ nghĩa\"}, {\"id\": \"B\", \"text\": \"Sự trưởng thành của giai cấp công nhân hiện đại\"}, {\"id\": \"C\", \"text\": \"Phong trào đấu tranh của giai cấp công nhân chống lại giai cấp tư sản phát triển mạnh mẽ\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(310, 14, 2, 'Sự biến đổi của cơ cấu xã hội - giai cấp trong thời kỳ quá độ lên chủ nghĩa xã hội gắn liền với sự biến đổi của yếu tố nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Cơ cấu kinh tế\"}, {\"id\": \"B\", \"text\": \"Cơ cấu chính trị\"}, {\"id\": \"C\", \"text\": \"Cơ cấu tư tưởng\"}, {\"id\": \"D\", \"text\": \"Cơ cấu dân cư\"}]', NULL, 'A', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(311, 14, 3, 'Khái niệm nào dùng để chỉ cộng đồng người ổn định làm thành nhân dân một nước, có lãnh thổ riêng, nền kinh tế thống nhất, ngôn ngữ chung và có ý thức về văn hóa, lịch sử của mình?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Thị tộc\"}, {\"id\": \"B\", \"text\": \"Bộ lạc\"}, {\"id\": \"C\", \"text\": \"Bộ tộc\"}, {\"id\": \"D\", \"text\": \"Dân tộc (theo nghĩa quốc gia)\"}]', NULL, 'D', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(312, 14, 4, 'Tôn giáo có mấy bản chất cơ bản theo quan điểm của chủ nghĩa Mác - Lênin?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Tính lịch sử\"}, {\"id\": \"B\", \"text\": \"Tính quần chúng\"}, {\"id\": \"C\", \"text\": \"Tính chính trị\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(313, 14, 5, 'Yếu tố nào là cơ sở để hình thành gia đình trong thời kỳ quá độ lên CNXH?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Hôn nhân tự nguyện, tiến bộ\"}, {\"id\": \"B\", \"text\": \"Quan tế giữa vợ và chồng, cha mẹ và con cái dựa trên sự bình đẳng\"}, {\"id\": \"C\", \"text\": \"Chế độ công hữu về tư liệu sản xuất\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(314, 14, 6, 'Điền vào chỗ trống: “Dân chủ XHCN vừa mang bản chất giai cấp công nhân, vừa có tính nhân dân rộng rãi và tính ....... sâu sắc.”', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Giai cấp\"}, {\"id\": \"B\", \"text\": \"Dân tộc\"}, {\"id\": \"C\", \"text\": \"Nhân đạo\"}, {\"id\": \"D\", \"text\": \"Xã hội\"}]', NULL, 'B', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(315, 14, 7, 'Trong các hình thức dân chủ dưới đây, hình thức nào cho phép cử tri trực tiếp bầu ra đại biểu đại diện cho quyền lực của mình?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Dân chủ trực tiếp\"}, {\"id\": \"B\", \"text\": \"Dân chủ đại diện (gián tiếp)\"}, {\"id\": \"C\", \"text\": \"Dân chủ tham vấn\"}, {\"id\": \"D\", \"text\": \"Cả A và B\"}]', NULL, 'B', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(316, 14, 8, 'Điểm khác biệt cơ bản giữa nhà nước XHCN với các nhà nước bóc lột trong lịch sử là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Đặt dưới sự lãnh đạo của Đảng Cộng sản, phục vụ lợi ích của đa số nhân dân lao động\"}, {\"id\": \"B\", \"text\": \"Có bộ máy công an, quân đội mạnh mẽ\"}, {\"id\": \"C\", \"text\": \"Sử dụng pháp luật để quản lý xã hội\"}, {\"id\": \"D\", \"text\": \"Coi trọng phát triển kinh tế\"}]', NULL, 'A', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(317, 14, 9, 'Nhóm xã hội nào được coi là lực lượng lao động sáng tạo đặc biệt, đóng vai trò quan trọng trong việc nâng cao dân trí và phát triển lực lượng sản xuất hiện đại?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Giai cấp nông dân\"}, {\"id\": \"B\", \"text\": \"Giai cấp công nhân\"}, {\"id\": \"C\", \"text\": \"Tầng lớp trí thức\"}, {\"id\": \"D\", \"text\": \"Đội ngũ doanh nhân\"}]', NULL, 'C', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(318, 14, 10, 'Nguyên tắc căn bản nhất trong giải quyết vấn đề dân tộc theo chủ nghĩa Mác – Lênin là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Các dân tộc hoàn toàn bình đẳng\"}, {\"id\": \"B\", \"text\": \"Các dân tộc được quyền tự quyết\"}, {\"id\": \"C\", \"text\": \"Liên hiệp công nhân tất cả các dân tộc\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(319, 14, 11, 'Trong các chức năng của gia đình, chức năng nào quyết định trực tiếp đến sự tồn tại và phát triển của xã hội?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Tái sản xuất ra con người\"}, {\"id\": \"B\", \"text\": \"Nuôi dưỡng, giáo dục\"}, {\"id\": \"C\", \"text\": \"Thỏa mãn nhu cầu tâm sinh lý\"}, {\"id\": \"D\", \"text\": \"Kinh tế và tổ chức tiêu dùng\"}]', NULL, 'A', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(320, 14, 12, 'Nguyên nhân kinh tế - xã hội nào dẫn đến sự tồn tại của tín ngưỡng, tôn giáo trong thời kỳ quá độ lên CNXH?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Do trình độ nhận thức của người dân còn hạn chế\"}, {\"id\": \"B\", \"text\": \"Do sự tác động của tâm lý, thói quen lâu đời\"}, {\"id\": \"C\", \"text\": \"Do còn nhiều thành phần kinh tế, còn sự phân hóa giàu nghèo và bất bình đẳng xã hội\"}, {\"id\": \"D\", \"text\": \"Do các thế lực thù địch lợi dụng tôn giáo\"}]', NULL, 'C', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(321, 14, 13, 'Cương lĩnh chính trị đầu tiên của Đảng ta (2/1930) đã xác định con đường phát triển của cách mạng Việt Nam là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Làm cách mạng tư sản dân quyền và thổ địa cách mạng để đi tới xã hội tư bản\"}, {\"id\": \"B\", \"text\": \"Làm tư sản dân quyền cách mạng và thổ địa cách mạng để đi tới xã hội cộng sản\"}, {\"id\": \"C\", \"text\": \"Tiến thẳng lên chủ nghĩa xã hội không qua giai đoạn phát triển tư bản\"}, {\"id\": \"D\", \"text\": \"Xây dựng nền kinh tế thị trường định hướng XHCN\"}]', NULL, 'B', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(322, 14, 14, 'Đặc trưng nào thể hiện bản chất tư tưởng - văn hóa của nền dân chủ XHCN?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Lấy chủ nghĩa Mác – Lênin làm nền tảng tinh thần xã hội\"}, {\"id\": \"B\", \"text\": \"Tiếp thu có chọn lọc toàn bộ văn hóa phương Tây\"}, {\"id\": \"C\", \"text\": \"Duy trì các phong tục tập quán cổ truyền\"}, {\"id\": \"D\", \"text\": \"Đặt niềm tin vào các tín ngưỡng dân gian\"}]', NULL, 'A', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(323, 14, 15, 'Yếu tố nào đóng vai trò là động lực chủ yếu của sự phát triển đất nước trong thời kỳ quá độ lên CNXH ở Việt Nam?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Sự ủng hộ của quốc tế\"}, {\"id\": \"B\", \"text\": \"Đại đoàn kết toàn dân tộc trên cơ sở liên minh công nhân - nông dân - trí thức\"}, {\"id\": \"C\", \"text\": \"Sự phát triển của các doanh nghiệp tư nhân\"}, {\"id\": \"D\", \"text\": \"Đổi mới công nghệ sản xuất\"}]', NULL, 'B', NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(324, 14, 16, 'Lý do giai cấp công nhân có sứ mệnh lịch sử lãnh đạo cách mạng xóa bỏ chế độ bóc lột, xây dựng xã hội cộng sản chủ nghĩa', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(325, 14, 17, 'Vận dụng Cương lĩnh dân tộc của V.I. Lênin để làm rõ chủ trương của Đảng tại Đại hội XIII', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(326, 14, 18, 'Phân tích các chức năng cơ bản của gia đình', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 04:02:37', '2026-10-09 04:02:37'),
+(327, 15, 1, 'Trong chủ nghĩa tư bản, giai cấp công nhân có mấy đặc trưng cơ bản?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"2\"}, {\"id\": \"B\", \"text\": \"3\"}, {\"id\": \"C\", \"text\": \"4\"}, {\"id\": \"D\", \"text\": \"5\"}]', NULL, 'A', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(328, 15, 2, 'Một số thuật ngữ khác nhau được C.Mác và Ph.Ănghen sử dụng có ý nghĩa tương đồng với khái niệm giai cấp công nhân:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Giai cấp vô sản\"}, {\"id\": \"B\", \"text\": \"Giai cấp công nhân hiện đại\"}, {\"id\": \"C\", \"text\": \"Giai cấp công nhân đại công nghiệp\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'D', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(329, 15, 3, 'Nguyên nhân nhận thức cho sự tồn tại của tín ngưỡng, tôn giáo là', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Con người sợ sệt thần linh\"}, {\"id\": \"B\", \"text\": \"Con người chưa nhận thức và chế ngự được các hiện tượng tự nhiên, xã hội\"}, {\"id\": \"C\", \"text\": \"Con người huy động sức mạnh của thần linh\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều sai\"}]', NULL, 'B', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(330, 15, 4, 'Cách sắp xếp nào sau đây đúng về sự xuất hiện của các tộc người trong lịch sử?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Thị tộc, bộ lạc, bộ tộc, dân tộc\"}, {\"id\": \"B\", \"text\": \"Bộ tộc, bộ lạc, thị tộc, dân tộc\"}, {\"id\": \"C\", \"text\": \"Bộ lạc, thị tộc, bộ tộc, dân tộc\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều sai\"}]', NULL, 'A', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(331, 15, 5, 'Dân tộc ở Châu Á hình thành khi nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Khi chủ nghĩa tư bản hình thành và phát triển\"}, {\"id\": \"B\", \"text\": \"Khi cộng đồng hợp sức chống thiên tai và giặc ngoại xâm\"}, {\"id\": \"C\", \"text\": \"Khi ý thức dân tộc trỗi dậy\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều đúng\"}]', NULL, 'B', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(332, 15, 6, 'Một trong những vai trò của gia đình', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Gia đình là cội nguồn của nhân cách\"}, {\"id\": \"B\", \"text\": \"Gia đình là nơi nuôi dưỡng tình cảm và lý trí\"}, {\"id\": \"C\", \"text\": \"Gia đình là tế bào của xã hội\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều đúng\"}]', NULL, 'D', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(333, 15, 7, 'Phương pháp luận chung nhất của chủ nghĩa xã hội khoa học là...', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"CNDVBC và CNDVLS\"}, {\"id\": \"B\", \"text\": \"Lôgic và lịch sử\"}, {\"id\": \"C\", \"text\": \"Thống kê và so sánh\"}, {\"id\": \"D\", \"text\": \"Phân tích và so sánh\"}]', NULL, 'A', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(334, 15, 8, 'Phương pháp có tính đặc thù của chủ nghĩa xã hội khoa học là...?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Logic và lịch sử\"}, {\"id\": \"B\", \"text\": \"Thống kê và so sánh\"}, {\"id\": \"C\", \"text\": \"Phân tích và so sánh\"}, {\"id\": \"D\", \"text\": \"Phương pháp khảo sát và phân tích về mặt chính trị - xã hội dựa trên các điều kiện kinh tế - xã hội cụ thể\"}]', NULL, 'D', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(335, 15, 9, 'V.I.Lênin chia PTSX CSCN thành mấy giai đoạn?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Hai giai đoạn: CNXH và CNCS\"}, {\"id\": \"B\", \"text\": \"Ba giai đoạn: TKQĐ, CNXH và CNCS\"}, {\"id\": \"C\", \"text\": \"Bốn giai đoạn TKQĐ, CNXH, CNXH phát triển và CNCS\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều sai\"}]', NULL, 'B', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(336, 15, 10, 'Thời kỳ quá độ lên CNXH là tất yếu đối với:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Các nước bỏ qua CNTB lên CNXH\"}, {\"id\": \"B\", \"text\": \"Các nước TBCN kém phát triển lên CNXH\"}, {\"id\": \"C\", \"text\": \"Tất cả các nước xây dựng CNXH\"}, {\"id\": \"D\", \"text\": \"Các nước TBCN phát triển lên CNXH\"}]', NULL, 'C', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(337, 15, 11, 'Thực chất của TKQĐ lên CNXH là gì?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Là cuộc cải biến cách mạng về kinh tế\"}, {\"id\": \"B\", \"text\": \"Là cuộc cải biến cách mạng về chính trị\"}, {\"id\": \"C\", \"text\": \"Là cuộc cải biến cách mạng về tư tưởng và văn hoá\"}, {\"id\": \"D\", \"text\": \"Tất cả các câu đều đúng\"}]', NULL, 'D', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(338, 15, 12, 'Thời kỳ quá độ lên chủ nghĩa xã hội trên phạm vi cả nước ta bắt đầu từ khi nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"8/1945\"}, {\"id\": \"B\", \"text\": \"5/1954\"}, {\"id\": \"C\", \"text\": \"4/1975\"}, {\"id\": \"D\", \"text\": \"2/1930\"}]', NULL, 'C', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(339, 15, 13, 'Nền kinh tế tri thức được xem là:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Một phương thức sản xuất mới\"}, {\"id\": \"B\", \"text\": \"Một hình thái kinh tế - xã hội mới\"}, {\"id\": \"C\", \"text\": \"Một giai đoạn mới của CNTB hiện đại\"}, {\"id\": \"D\", \"text\": \"Một nấc thang phát triển của lực lượng sản xuất\"}]', NULL, 'D', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(340, 15, 14, 'So với các nền dân chủ trước đây, dân chủ xã hội chủ nghĩa có điểm khác biệt cơ bản nào?', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Không còn mang tính giai cấp.\"}, {\"id\": \"B\", \"text\": \"Là nền dân chủ phi lịch sử.\"}, {\"id\": \"C\", \"text\": \"Là nền dân chủ thuần tuý.\"}, {\"id\": \"D\", \"text\": \"Là nền dân chủ rộng rãi cho giai cấp công nhân và nhân dân lao động.\"}]', NULL, 'D', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(341, 15, 15, 'Giai cấp công nhân là tập đoàn người lao động sử dụng công cụ sản xuất có tính:', 'multiple_choice', '[{\"id\": \"A\", \"text\": \"Thủ công\"}, {\"id\": \"B\", \"text\": \"Công nghiệp\"}, {\"id\": \"C\", \"text\": \"Thô sơ\"}, {\"id\": \"D\", \"text\": \"Cả A, B, C\"}]', NULL, 'B', NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(342, 15, 16, 'Trình bày đặc điểm của giai cấp công nhân hiện nay', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(343, 15, 17, 'Trình bày chính sách tôn giáo của Đảng, Nhà nước Việt Nam hiện nay', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34'),
+(344, 15, 18, 'Tại sao quy mô gia đình ngày nay (gia đình hạt nhân) tồn tại xu hướng thu nhỏ hơn so với quy mô gia đình truyền thống trước kia?', 'essay', NULL, '[]', NULL, NULL, 0, '2026-10-09 06:45:34', '2026-10-09 06:45:34');
 
 -- --------------------------------------------------------
 
@@ -432,8 +517,26 @@ CREATE TABLE `likes` (
 --
 
 INSERT INTO `likes` (`id`, `user_id`, `likeable_type`, `likeable_id`, `is_liked`, `created_at`, `updated_at`) VALUES
-(2, 2, 'Document', 4, 1, '2026-10-08 03:12:36', '2026-10-08 03:12:36'),
-(3, 2, 'Document', 5, 1, '2026-10-08 03:12:37', '2026-10-08 03:12:37');
+(38, 5, 'Document', 3, 1, '2026-10-08 10:01:32', '2026-10-08 10:01:32'),
+(68, 5, 'Document', 5, 0, '2026-10-08 10:46:51', '2026-10-08 10:46:51'),
+(70, 5, 'FlashcardDeck', 1, 0, '2026-10-08 10:48:32', '2026-10-08 10:48:32'),
+(74, 5, 'FlashcardDeck', 2, 0, '2026-10-08 10:56:43', '2026-10-08 10:56:43'),
+(75, 2, 'Document', 3, 1, '2026-10-08 10:56:58', '2026-10-08 10:56:58'),
+(77, 6, 'Document', 5, 1, '2026-10-08 11:19:53', '2026-10-08 11:19:53'),
+(79, 6, 'Document', 4, 0, '2026-10-08 11:20:05', '2026-10-08 11:20:05'),
+(82, 2, 'Exam', 7, 1, '2026-10-08 11:20:44', '2026-10-08 11:20:44'),
+(84, 2, 'Exam', 8, 1, '2026-10-08 11:20:50', '2026-10-08 11:20:50'),
+(93, 2, 'Document', 5, 1, '2026-10-08 21:49:57', '2026-10-08 21:49:57'),
+(94, 2, 'Document', 4, 1, '2026-10-08 21:49:59', '2026-10-08 21:49:59'),
+(95, 2, 'Document', 1, 1, '2026-10-08 22:03:43', '2026-10-08 22:03:43'),
+(96, 2, 'App\\Models\\Document', 5, 1, '2026-10-09 06:51:35', '2026-10-09 06:51:35'),
+(97, 2, 'App\\Models\\Document', 4, 1, '2026-10-09 06:51:36', '2026-10-09 06:51:36'),
+(98, 5, 'App\\Models\\Document', 5, 1, '2026-10-09 06:52:23', '2026-10-09 06:52:23'),
+(99, 5, 'App\\Models\\Exam', 8, 1, '2026-10-09 06:52:47', '2026-10-09 06:52:47'),
+(100, 5, 'App\\Models\\Exam', 15, 1, '2026-10-09 06:52:52', '2026-10-09 06:52:52'),
+(101, 2, 'App\\Models\\Exam', 10, 1, '2026-10-09 07:26:01', '2026-10-09 07:26:01'),
+(102, 2, 'App\\Models\\Exam', 6, 1, '2026-10-09 07:26:03', '2026-10-09 07:26:03'),
+(103, 2, 'App\\Models\\Exam', 4, 1, '2026-10-09 07:26:06', '2026-10-09 07:26:06');
 
 -- --------------------------------------------------------
 
@@ -489,7 +592,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (35, '2026_10_08_085933_drop_subject_and_category_id_from_exams_table', 1),
 (37, '2026_10_08_091038_drop_subject_and_category_id_from_essay_questions_table', 2),
 (38, '2026_10_08_100519_increase_essay_questions_title_length', 3),
-(40, '2026_10_09_update_subscriptions_plan_enum', 4);
+(40, '2026_10_09_update_subscriptions_plan_enum', 4),
+(41, '2026_10_08_180612_create_user_exam_attempts_table', 5),
+(42, '2026_10_09_160000_update_payment_transactions_plan_enum', 5);
 
 -- --------------------------------------------------------
 
@@ -514,7 +619,7 @@ CREATE TABLE `payment_transactions` (
   `user_id` bigint UNSIGNED DEFAULT NULL,
   `reference_code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `amount` int NOT NULL,
-  `plan` enum('1month','3month','5month','full') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `plan` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `subjects` json DEFAULT NULL,
   `status` enum('pending','success','failed','expired') COLLATE utf8mb4_unicode_ci NOT NULL,
   `sepay_response` json DEFAULT NULL,
@@ -527,7 +632,13 @@ CREATE TABLE `payment_transactions` (
 --
 
 INSERT INTO `payment_transactions` (`id`, `user_id`, `reference_code`, `amount`, `plan`, `subjects`, `status`, `sepay_response`, `created_at`, `updated_at`) VALUES
-(1, 2, 'LHXuU8Hv7dIdnO61o', 19000, '1month', '[]', 'success', '{\"id\": 88118395, \"code\": null, \"content\": \"LHXuU8Hv7dIdnO61o FT26281269500089 k2PKV42G/288616\", \"gateway\": \"MBBank\", \"subAccount\": null, \"accumulated\": 0, \"description\": \"BankAPINotify LHXuU8Hv7dIdnO61o FT26281269500089 k2PKV42G/288616\", \"transferType\": \"in\", \"accountNumber\": \"0772052220\", \"referenceCode\": \"FT26281194005204\", \"transferAmount\": 19000, \"transactionDate\": \"2026-10-08 17:23:00\"}', '2026-10-08 03:22:38', '2026-10-08 03:23:06');
+(2, 5, 'LHYvjgmMDUtAjimry', 19000, '1subject', '[]', 'expired', NULL, '2026-10-08 08:14:10', '2026-10-08 08:34:09'),
+(3, 5, 'LHfWorBmhdDwCSZ09', 19000, '1subject', '[]', 'success', '{\"id\": 88198395, \"code\": null, \"content\": \"LHfWorBmhdDwCSZ09 FT26282635408201 k2PZY3PA/331848\", \"gateway\": \"MBBank\", \"subAccount\": null, \"accumulated\": 0, \"description\": \"BankAPINotify LHfWorBmhdDwCSZ09 FT26282635408201 k2PZY3PA/331848\", \"transferType\": \"in\", \"accountNumber\": \"0772052220\", \"referenceCode\": \"FT26282260656229\", \"transferAmount\": 19000, \"transactionDate\": \"2026-10-08 22:36:00\"}', '2026-10-08 08:34:09', '2026-10-08 08:37:32'),
+(4, 5, 'LHT6L1RUEw2tVGm6W', 19000, '1subject', '[]', 'pending', NULL, '2026-10-08 08:47:16', '2026-10-08 08:47:16'),
+(5, 2, 'LHQVrerxuhtg1DDAl', 19000, '1subject', '[]', 'success', '{\"id\": 88466419, \"code\": null, \"content\": \"LHQVrerxuhtg1DDAl FT26282758409114 k2YJQVQY/061089\", \"gateway\": \"MBBank\", \"subAccount\": null, \"accumulated\": 0, \"description\": \"BankAPINotify LHQVrerxuhtg1DDAl FT26282758409114 k2YJQVQY/061089\", \"transferType\": \"in\", \"accountNumber\": \"0772052220\", \"referenceCode\": \"FT26282320242802\", \"transferAmount\": 19000, \"transactionDate\": \"2026-10-09 21:28:00\"}', '2026-10-09 07:27:16', '2026-10-09 07:27:55'),
+(6, 2, 'LH4ROqDh472AVQdEK', 19000, '1subject', '[]', 'success', '{\"id\": 88467928, \"code\": null, \"content\": \"LH4ROqDh472AVQdEK FT26282529901438 k2YJJ5HB/103065\", \"gateway\": \"MBBank\", \"subAccount\": null, \"accumulated\": 0, \"description\": \"BankAPINotify LH4ROqDh472AVQdEK FT26282529901438 k2YJJ5HB/103065\", \"transferType\": \"in\", \"accountNumber\": \"0772052220\", \"referenceCode\": \"FT26282736166256\", \"transferAmount\": 19000, \"transactionDate\": \"2026-10-09 21:34:00\"}', '2026-10-09 07:34:15', '2026-10-09 07:39:39'),
+(7, 2, 'LHnXdCXMa0CRM9APJ', 19000, '1subject', '[]', 'pending', NULL, '2026-10-09 07:39:21', '2026-10-09 07:39:21'),
+(8, 7, 'LH1bnfqC6Bua1Uzcz', 19000, '1subject', '[7]', 'success', '{\"id\": 88475868, \"code\": null, \"content\": \"LH1bnfqC6Bua1Uzcz FT26283070308173 k2YJUTMP/316738\", \"gateway\": \"MBBank\", \"subAccount\": null, \"accumulated\": 0, \"description\": \"BankAPINotify LH1bnfqC6Bua1Uzcz FT26283070308173 k2YJUTMP/316738\", \"transferType\": \"in\", \"accountNumber\": \"0772052220\", \"referenceCode\": \"FT26282788724102\", \"transferAmount\": 19000, \"transactionDate\": \"2026-10-09 22:13:00\"}', '2026-10-09 08:13:01', '2026-10-09 08:13:43');
 
 -- --------------------------------------------------------
 
@@ -553,7 +664,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
-(5, 'App\\Models\\User', 1, 'auth_token', '293550275eb6d6e608ceb65f44e8233f187a81f6e3aecfa8d40a0d96b3ac0978', '[\"*\"]', '2026-10-08 04:53:55', NULL, '2026-10-08 04:50:30', '2026-10-08 04:53:55');
+(36, 'App\\Models\\User', 5, 'auth_token', '78514906f3e71faa8e44a2ad72014688c74e71f3fa69376f19ea2b129aaaafa4', '[\"*\"]', NULL, NULL, '2026-10-09 06:54:33', '2026-10-09 06:54:33'),
+(41, 'App\\Models\\User', 7, 'auth_token', '93d43630a08f7a5746befa1659b1398589d9ecb4a0b3612c1d98551d98a87803', '[\"*\"]', '2026-10-09 08:22:59', NULL, '2026-10-09 08:09:54', '2026-10-09 08:22:59');
 
 -- --------------------------------------------------------
 
@@ -823,7 +935,8 @@ CREATE TABLE `subjects` (
 INSERT INTO `subjects` (`id`, `category_id`, `name`, `slug`, `icon`, `description`, `status`, `order`, `created_at`, `updated_at`) VALUES
 (4, 4, 'Quản trị học', 'quan-tri-hoc', '', NULL, 'active', 0, '2026-10-08 02:24:21', '2026-10-08 02:24:21'),
 (5, 4, 'Kinh tế chính trị', 'kinh-te-chinh-tri', '', NULL, 'active', 0, '2026-10-08 02:47:35', '2026-10-08 02:47:35'),
-(6, 5, 'Quản trị rủi ro', 'quan-tri-rui-ro', '', NULL, 'active', 0, '2026-10-08 03:02:31', '2026-10-08 03:02:31');
+(6, 5, 'Quản trị rủi ro', 'quan-tri-rui-ro', '', NULL, 'active', 0, '2026-10-08 03:02:31', '2026-10-08 03:02:31'),
+(7, 4, 'CNXHKH', 'cnxhkh', '📖', NULL, 'active', 0, '2026-10-09 03:28:23', '2026-10-09 03:28:23');
 
 -- --------------------------------------------------------
 
@@ -850,7 +963,9 @@ CREATE TABLE `subscriptions` (
 --
 
 INSERT INTO `subscriptions` (`id`, `user_id`, `plan`, `subjects`, `price`, `valid_from`, `valid_until`, `is_active`, `payment_reference`, `created_at`, `updated_at`) VALUES
-(1, 2, '1subject', '[5]', 19000, '2026-10-08', '2126-09-14', 1, 'LHXuU8Hv7dIdnO61o', '2026-10-08 03:23:06', '2026-10-08 03:25:55');
+(2, 5, '1subject', '[4]', 19000, '2026-10-08', '2126-09-14', 1, 'LHfWorBmhdDwCSZ09', '2026-10-08 08:37:32', '2026-10-08 08:59:03'),
+(5, 2, '1subject', '[]', 19000, '2026-10-09', '2126-09-15', 1, 'LH4ROqDh472AVQdEK', '2026-10-09 07:39:39', '2026-10-09 07:39:39'),
+(6, 7, '1subject', '[7]', 19000, '2026-10-09', '2126-09-15', 1, 'LH1bnfqC6Bua1Uzcz', '2026-10-09 08:13:43', '2026-10-09 08:13:43');
 
 -- --------------------------------------------------------
 
@@ -890,7 +1005,10 @@ INSERT INTO `users` (`id`, `name`, `email`, `role`, `admin_role`, `school`, `maj
 (1, 'Admin LingoHub', 'admin@lingohub.vn', 'admin', 'super', NULL, NULL, NULL, NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$/wB8OQccpnQEudO0pgdVe.Kn5GpJWyoo3XYJnQ0e29hgaKJSslbfW', NULL, '2026-10-08 02:11:52', '2026-10-08 02:19:08'),
 (2, 'Nguyễn Văn Demo', 'demo@lingohub.vn', 'student', NULL, 'ĐH Kinh tế TP.HCM', 'Quản trị Kinh doanh', '3', NULL, 'active', 1.00, 0.00, 0.00, 2, NULL, 2, NULL, '$2y$12$5SoBY2QYJio9J3zRt/jPa.5b92q/xzIc/e2Iw0XqkJlJsUI3qItIu', NULL, '2026-10-08 02:11:53', '2026-10-08 04:30:55'),
 (3, 'Trần Thị Sinh Viên', 'sinhvien@uni.edu.vn', 'student', NULL, 'ĐH Bách Khoa HN', 'Công nghệ thông tin', '2', NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$kPK94RIHKWi8tL/bNgFIOeS61dRGnIfYrkAD.5KyHpCwvPEnryLB2', NULL, '2026-10-08 02:11:53', '2026-10-08 02:11:53'),
-(4, 'Nguyễn Đức Anh Minh', 'ndaminh26062006@gmail.com', 'admin', 'content', NULL, NULL, NULL, NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$.HaKR889W2W1099H6zliYu1yUvjcG4MYO7XGmCPtqZuP6nlWWtTkC', NULL, '2026-10-08 02:13:51', '2026-10-08 02:22:15');
+(4, 'Nguyễn Đức Anh Minh', 'ndaminh26062006@gmail.com', 'admin', 'content', NULL, NULL, NULL, NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$.HaKR889W2W1099H6zliYu1yUvjcG4MYO7XGmCPtqZuP6nlWWtTkC', NULL, '2026-10-08 02:13:51', '2026-10-09 02:58:38'),
+(5, 'Nguyễn Đức Minh Anh', 'ndaminh2606@gmail.com', 'student', NULL, NULL, NULL, NULL, NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$EoqAejjClAIju6DO1SPL..Br1sf9CquMa7mU./ltXYKSZsjus8T22', NULL, '2026-10-08 08:10:41', '2026-10-08 08:10:41'),
+(6, 'Nguyễn Văn A', 'nva@gmail.com', 'admin', 'super', NULL, NULL, NULL, NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$6qS7yjNjb00Jwr22L5/S7eq7rayuwH22JOB.S1MRnNbv7N4Ov35hK', NULL, '2026-10-08 11:19:45', '2026-10-09 03:05:56'),
+(7, 'Nguyễn Văn B', 'nvb@gmail.com', 'student', NULL, NULL, NULL, NULL, NULL, 'active', 0.00, 0.00, 0.00, 0, NULL, 2, NULL, '$2y$12$OyG7IZJaNQ5AMciVNVfaD.FKWA88JbHtY.ClAlITB3Z6Mm68QZLpe', NULL, '2026-10-09 07:41:16', '2026-10-09 07:41:16');
 
 -- --------------------------------------------------------
 
@@ -935,6 +1053,38 @@ CREATE TABLE `user_document_submissions` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `user_exam_attempts`
+--
+
+CREATE TABLE `user_exam_attempts` (
+  `id` bigint UNSIGNED NOT NULL,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `exam_id` bigint UNSIGNED NOT NULL,
+  `subject_id` bigint UNSIGNED NOT NULL,
+  `attempted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `user_exam_attempts`
+--
+
+INSERT INTO `user_exam_attempts` (`id`, `user_id`, `exam_id`, `subject_id`, `attempted_at`, `created_at`, `updated_at`) VALUES
+(1, 2, 11, 7, '2026-10-09 07:18:12', '2026-10-09 07:18:12', '2026-10-09 07:18:12'),
+(2, 2, 12, 7, '2026-10-09 07:24:48', '2026-10-09 07:24:48', '2026-10-09 07:24:48'),
+(3, 2, 15, 7, '2026-10-09 07:24:56', '2026-10-09 07:24:56', '2026-10-09 07:24:56'),
+(4, 2, 8, 5, '2026-10-09 07:25:11', '2026-10-09 07:25:11', '2026-10-09 07:25:11'),
+(5, 2, 10, 4, '2026-10-09 07:25:17', '2026-10-09 07:25:17', '2026-10-09 07:25:17'),
+(6, 2, 7, 5, '2026-10-09 07:25:22', '2026-10-09 07:25:22', '2026-10-09 07:25:22'),
+(7, 2, 4, 4, '2026-10-09 07:26:14', '2026-10-09 07:26:14', '2026-10-09 07:26:14'),
+(8, 2, 6, 4, '2026-10-09 07:26:19', '2026-10-09 07:26:19', '2026-10-09 07:26:19'),
+(9, 7, 11, 7, '2026-10-09 07:41:23', '2026-10-09 07:41:23', '2026-10-09 07:41:23'),
+(10, 7, 15, 7, '2026-10-09 08:16:05', '2026-10-09 08:16:05', '2026-10-09 08:16:05');
 
 -- --------------------------------------------------------
 
@@ -1171,6 +1321,17 @@ ALTER TABLE `user_document_submissions`
   ADD KEY `user_document_submissions_user_id_created_at_index` (`user_id`,`created_at`);
 
 --
+-- Chỉ mục cho bảng `user_exam_attempts`
+--
+ALTER TABLE `user_exam_attempts`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_exam_attempts_user_id_exam_id_subject_id_unique` (`user_id`,`exam_id`,`subject_id`),
+  ADD KEY `user_exam_attempts_exam_id_foreign` (`exam_id`),
+  ADD KEY `user_exam_attempts_subject_id_foreign` (`subject_id`),
+  ADD KEY `user_exam_attempts_user_id_subject_id_index` (`user_id`,`subject_id`),
+  ADD KEY `user_exam_attempts_attempted_at_index` (`attempted_at`);
+
+--
 -- Chỉ mục cho bảng `user_exam_submissions`
 --
 ALTER TABLE `user_exam_submissions`
@@ -1207,7 +1368,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT cho bảng `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT cho bảng `documents`
@@ -1225,13 +1386,13 @@ ALTER TABLE `essay_questions`
 -- AUTO_INCREMENT cho bảng `exams`
 --
 ALTER TABLE `exams`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT cho bảng `exam_questions`
 --
 ALTER TABLE `exam_questions`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=260;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=345;
 
 --
 -- AUTO_INCREMENT cho bảng `failed_jobs`
@@ -1261,25 +1422,25 @@ ALTER TABLE `freemium_usages`
 -- AUTO_INCREMENT cho bảng `likes`
 --
 ALTER TABLE `likes`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
 
 --
 -- AUTO_INCREMENT cho bảng `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT cho bảng `payment_transactions`
 --
 ALTER TABLE `payment_transactions`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT cho bảng `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT cho bảng `questions`
@@ -1291,19 +1452,19 @@ ALTER TABLE `questions`
 -- AUTO_INCREMENT cho bảng `subjects`
 --
 ALTER TABLE `subjects`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT cho bảng `subscriptions`
 --
 ALTER TABLE `subscriptions`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT cho bảng `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT cho bảng `user_achievements`
@@ -1316,6 +1477,12 @@ ALTER TABLE `user_achievements`
 --
 ALTER TABLE `user_document_submissions`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT cho bảng `user_exam_attempts`
+--
+ALTER TABLE `user_exam_attempts`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT cho bảng `user_exam_submissions`
@@ -1420,6 +1587,14 @@ ALTER TABLE `user_achievements`
 ALTER TABLE `user_document_submissions`
   ADD CONSTRAINT `user_document_submissions_document_id_foreign` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `user_document_submissions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `user_exam_attempts`
+--
+ALTER TABLE `user_exam_attempts`
+  ADD CONSTRAINT `user_exam_attempts_exam_id_foreign` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_exam_attempts_subject_id_foreign` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_exam_attempts_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `user_exam_submissions`

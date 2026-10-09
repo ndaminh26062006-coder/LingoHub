@@ -17,6 +17,7 @@ import DashboardPage  from './pages/DashboardPage';
 import ProfilePage    from './pages/ProfilePage';
 import PaymentCallbackPage from './pages/PaymentCallbackPage';
 import PaymentHistoryPage from './pages/PaymentHistoryPage';
+import OAuthCallbackHandler from './pages/OAuthCallbackHandler';
 
 // Admin
 import AdminGuard     from './admin/AdminGuard';
@@ -75,6 +76,9 @@ export default function App() {
           {/* ── Auth ── */}
           <Route path="/login"    element={<AuthLayout><LoginPage /></AuthLayout>} />
           <Route path="/register" element={<AuthLayout><RegisterPage /></AuthLayout>} />
+          
+          {/* ── OAuth Callback ── */}
+          <Route path="/auth/callback" element={<AuthLayout><OAuthCallbackHandler /></AuthLayout>} />
 
           {/* ── Admin (role-guarded) ── */}
           <Route path="/admin"            element={<AdminPage><AdminDashboard /></AdminPage>} />
