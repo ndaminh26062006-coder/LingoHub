@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { adminApi } from '../services/api';
+import { adminApi, authApi } from '../services/api';
 import './AdminLayout.css';
 
 export default function AdminUsers() {
@@ -10,6 +10,19 @@ export default function AdminUsers() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selected, setSelected]   = useState(null);
   const [confirmBlock, setConfirmBlock] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [currentUserAdminRole, setCurrentUserAdminRole] = useState(null);
+
+  // Get current user role on mount
+  useEffect(() => {
+    authApi.me()
+      .then(res => {
+        console.log('👤 Current user:', { role: res.data.role, admin_role: res.data.admin_role });
+        setCurrentUserRole(res.data.role);
+        setCurrentUserAdminRole(res.data.admin_role);
+      })
+      .catch(() => {});
+  }, []);
 
   const loadUsers = useCallback(() => {
     setLoading(true);
@@ -130,7 +143,7 @@ export default function AdminUsers() {
                   <td>
                     <div style={{ display:'flex', gap:6 }}>
                       <button className="admin-action-btn admin-action-btn--primary" onClick={() => setSelected(u)}>Chi tiết</button>
-                      {u.role !== 'admin' && (
+                      {u.role !== 'admin' && (currentUserAdminRole === null || currentUserAdminRole === 'super') && (
                         <button
                           className={`admin-action-btn ${u.status === 'active' ? 'admin-action-btn--danger' : ''}`}
                           onClick={() => setConfirmBlock(u)}
@@ -191,10 +204,14 @@ export default function AdminUsers() {
                   value={selected.role}
                   onChange={e => updateAdminRole(selected.id, e.target.value, selected.admin_role)}
                   style={{ width: '100%' }}
+                  disabled={currentUserAdminRole && currentUserAdminRole !== 'super'}
                 >
                   <option value="student">👤 Sinh viên</option>
                   <option value="admin">🔑 Admin</option>
                 </select>
+                {currentUserAdminRole && currentUserAdminRole !== 'super' && (
+                  <p style={{ fontSize:11, color:'#ef4444', marginTop:8 }}>⚠️ Chỉ Super Admin có quyền thay đổi vai trò</p>
+                )}
               </div>
 
               {/* Quyền Admin (chỉ hiển thị nếu là admin) */}
@@ -206,6 +223,7 @@ export default function AdminUsers() {
                     value={selected.admin_role || ''}
                     onChange={e => updateAdminRole(selected.id, 'admin', e.target.value || null)}
                     style={{ width: '100%' }}
+                    disabled={currentUserAdminRole && currentUserAdminRole !== 'super'}
                   >
                     <option value="">Chưa chọn loại admin</option>
                     <option value="super">⭐ Super Admin (Toàn quyền)</option>
@@ -215,12 +233,15 @@ export default function AdminUsers() {
                     • <strong>Super Admin:</strong> Toàn bộ quyền, khóa tài khoản, quản lý user<br/>
                     • <strong>Content Admin:</strong> Chỉ quản lý đề thi, flashcard, câu hỏi
                   </p>
+                  {currentUserAdminRole && currentUserAdminRole !== 'super' && (
+                    <p style={{ fontSize:11, color:'#ef4444', marginTop:8 }}>⚠️ Chỉ Super Admin có quyền thay đổi loại admin</p>
+                  )}
                 </div>
               )}
             </div>
             <div className="admin-modal__footer">
               <button className="btn btn-outline" onClick={() => setSelected(null)}>Đóng</button>
-              {selected.role !== 'admin' && (
+              {selected.role !== 'admin' && (currentUserAdminRole === null || currentUserAdminRole === 'super') && (
                 <button
                   className={`btn ${selected.status === 'active' ? 'btn-primary' : 'btn-orange'}`}
                   style={selected.status === 'active' ? { background:'#ef4444' } : {}}

@@ -56,14 +56,13 @@ export default function AdminDashboard() {
           <h1 className="admin-page-title">Dashboard</h1>
           <p className="admin-page-sub">Tổng quan hệ thống LingoHub</p>
         </div>
-        <span className="admin-refresh-hint">🕐 Cập nhật lúc {new Date().toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' })}</span>
+        <span className="admin-refresh-hint">Cập nhật lúc {new Date().toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' })}</span>
       </div>
 
       {/* ── Stats ── */}
       <div className="admin-cards-grid admin-cards-grid--8">
         {STATS.map(s => (
           <div key={s.label} className="admin-stat-card">
-            <div className="asc-icon" style={{ background: `${s.color}15`, color: s.color }}>{s.icon}</div>
             <div>
               <div className="asc-value" style={{ color: s.color }}>{s.value}</div>
               <div className="asc-label">{s.label}</div>
@@ -102,7 +101,7 @@ export default function AdminDashboard() {
             <span className="admin-card__title">🔔 Hoạt động gần đây</span>
           </div>
           <div className="admin-activity-feed" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-            📋 Chức năng này sẽ sớm có sẵn
+            Chức năng này sẽ sớm có sẵn
           </div>
         </div>
       </div>

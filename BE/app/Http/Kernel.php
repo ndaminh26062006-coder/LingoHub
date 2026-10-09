@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'admin'    => \App\Http\Middleware\AdminMiddleware::class,
         'superAdmin'   => \App\Http\Middleware\SuperAdminMiddleware::class,
         'contentAdmin' => \App\Http\Middleware\ContentAdminMiddleware::class,
+        'optionalAuth' => \App\Http\Middleware\OptionalAuth::class,
     ];
 }

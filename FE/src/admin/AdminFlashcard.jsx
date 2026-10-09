@@ -15,15 +15,20 @@ export default function AdminFlashcard() {
   const filtered = items.filter(i => {
     const q = search.toLowerCase();
     const ms = !q || i.name.toLowerCase().includes(q) || i.subject.toLowerCase().includes(q);
-    const mo = filterOwner==='all' || (filterOwner==='admin' ? i.owner==='admin' : i.owner!=='admin');
+    const mo = filterOwner==='all' || (filterOwner==='admin' ? i.owner_type==='admin' : i.owner_type!=='admin');
     return ms && mo;
   });
 
-  useEffect(() => {
-    adminApi.flashcards()
+  const reload = () => {
+    setLoading(true);
+    adminApi.getFlashcards()
       .then(res => setItems(toArray(res.data)))
       .catch(() => {})
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    reload();
   }, []);
 
   const save = async () => {
@@ -31,16 +36,16 @@ export default function AdminFlashcard() {
     if (!d.name.trim()) return;
     try {
       if (modal.mode === 'add') {
-        // For admin, create via flashcard API
-        const res = await adminApi.flashcards();
-        const arr = toArray(res.data);
-        setItems(arr);
+        const res = await adminApi.createFlashcard(d);
+        setItems(p => [res.data, ...p]);
       } else {
         const res = await adminApi.updateFlashcard(d.id, d);
-        setItems(p => p.map(i => i.id === d.id ? { ...i, ...res.data } : i));
+        setItems(p => p.map(i => i.id === d.id ? res.data : i));
       }
       setModal(null);
-    } catch {}
+    } catch (err) {
+      alert('Lỗi: ' + (err?.response?.data?.message || err.message));
+    }
   };
 
   const setE = f => e => setModal(m => ({...m,data:{...m.data,[f]:e.target.value}}));
@@ -74,15 +79,17 @@ export default function AdminFlashcard() {
           <table className="admin-table">
             <thead><tr><th>Tên bộ thẻ</th><th>Môn học</th><th>Số thẻ</th><th>Nguồn</th><th>Chế độ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
             <tbody>
-              {filtered.map(i => (
+              {loading ? (
+                <tr><td colSpan={7}><div className="admin-empty"><span></span><p>Đang tải...</p></div></td></tr>
+              ) : filtered.map(i => (
                 <tr key={i.id}>
                   <td style={{fontWeight:700,color:'var(--text-primary)'}}>{i.name}</td>
                   <td style={{fontSize:12}}>{i.subject}</td>
-                  <td style={{textAlign:'center',fontWeight:600}}>{i.cardCount}</td>
+                  <td style={{textAlign:'center',fontWeight:600}}>{i.cards_count || i.cardCount || 0}</td>
                   <td>
-                    {i.owner==='admin'
+                    {i.owner_type==='admin'
                       ? <span className="admin-badge admin-badge--orange">Admin</span>
-                      : <span className="admin-badge admin-badge--blue" style={{fontSize:11,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',display:'inline-block'}}>{i.owner}</span>
+                      : <span className="admin-badge admin-badge--blue" style={{fontSize:11,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',display:'inline-block'}}>{i.owner_id || i.owner || 'Cộng đồng'}</span>
                     }
                   </td>
                   <td>
@@ -99,7 +106,7 @@ export default function AdminFlashcard() {
                   </td>
                 </tr>
               ))}
-              {filtered.length===0 && <tr><td colSpan={7}><div className="admin-empty"><span></span><p>Không có bộ thẻ nào</p></div></td></tr>}
+              {!loading && filtered.length===0 && <tr><td colSpan={7}><div className="admin-empty"><span></span><p>Không có bộ thẻ nào</p></div></td></tr>}
             </tbody>
           </table>
         </div>

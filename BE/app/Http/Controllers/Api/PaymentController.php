@@ -27,6 +27,8 @@ class PaymentController extends Controller
     {
         $request->validate([
             'plan' => 'required|in:1subject,3subject,5subject,full',
+            'subjects' => 'nullable|array',
+            'subjects.*' => 'integer|exists:subjects,id',
         ]);
 
         $user = auth()->user();
@@ -35,9 +37,17 @@ class PaymentController extends Controller
         }
 
         $selectedPlan = $request->input('plan');
+        $selectedSubjects = $request->input('subjects') ?? [];
         
-        // Keep the selected plan (1subject, 3subject, 5subject, or full)
-        // User selects the plan with the number of subjects they want
+        // Validate: non-full plans MUST have at least one subject
+        if ($selectedPlan !== 'full' && empty($selectedSubjects)) {
+            return response()->json([
+                'error' => 'Subjects required',
+                'message' => 'Vui lòng chọn ít nhất một môn học'
+            ], 422);
+        }
+        
+        // Keep the selected plan
         $plan = $selectedPlan;
 
         // Get pricing based on selected plan
@@ -57,8 +67,12 @@ class PaymentController extends Controller
                 // Mark as expired
                 $existingPayment->update(['status' => 'expired']);
             } else {
-                // Reuse existing payment but update amount
-                $existingPayment->update(['amount' => $pricing['amount'], 'plan' => $plan]);
+                // Reuse existing payment but update amount + subjects
+                $existingPayment->update([
+                    'amount' => $pricing['amount'], 
+                    'plan' => $plan,
+                    'subjects' => $selectedSubjects  // ← Store subjects!
+                ]);
                 
                 $qrUrl = $this->generateSepayQRUrl(
                     $pricing['amount'],
@@ -71,6 +85,7 @@ class PaymentController extends Controller
                     'reference_code' => $existingPayment->reference_code,
                     'amount' => $pricing['amount'],
                     'plan' => $plan,
+                    'subjects' => $selectedSubjects,  // ← Return subjects!
                     'checkout_url' => $qrUrl,
                     'bank_account' => env('SEPAY_BANK_ACCOUNT'),
                     'account_name' => env('SEPAY_ACCOUNT_NAME'),
@@ -87,7 +102,7 @@ class PaymentController extends Controller
             'reference_code' => $referenceCode,
             'amount' => $pricing['amount'],
             'plan' => $plan,
-            'subjects' => [],
+            'subjects' => $selectedSubjects,  // ← Store subjects from request!
             'status' => 'pending',
         ]);
 
@@ -100,6 +115,7 @@ class PaymentController extends Controller
             'reference_code' => $referenceCode,
             'amount' => $pricing['amount'],
             'plan' => $plan,
+            'subjects' => $selectedSubjects,  // ← Return subjects in response!
             'checkout_url' => $qrUrl,
             'bank_account' => env('SEPAY_BANK_ACCOUNT'),
             'account_name' => env('SEPAY_ACCOUNT_NAME'),
@@ -213,6 +229,7 @@ class PaymentController extends Controller
             'status' => $transaction->status,
             'amount' => $transaction->amount,
             'plan' => $transaction->plan,
+            'plan_name' => self::getPlanName($transaction->plan),
             'created_at' => $transaction->created_at->toIso8601String(),
             'updated_at' => $transaction->updated_at->toIso8601String(),
         ]);
@@ -285,6 +302,7 @@ class PaymentController extends Controller
                     'reference_code' => $txn->reference_code,
                     'amount' => $txn->amount,
                     'plan' => $txn->plan,
+                    'plan_name' => self::getPlanName($txn->plan),
                     'status' => $txn->status,
                     'created_at' => $txn->created_at->toDateString(),
                     'created_at_full' => $txn->created_at->format('d/m/Y H:i'),
@@ -317,6 +335,21 @@ class PaymentController extends Controller
         ];
 
         return $pricing[$plan] ?? null;
+    }
+
+    /**
+     * Get plan name in Vietnamese
+     */
+    public static function getPlanName(string $plan): string
+    {
+        $planNames = [
+            '1subject' => 'Gói 1 môn',
+            '3subject' => 'Gói 3 môn',
+            '5subject' => 'Gói 5 môn',
+            'full' => 'Gói Full',
+        ];
+
+        return $planNames[$plan] ?? $plan;
     }
 
     /**
@@ -367,26 +400,73 @@ class PaymentController extends Controller
 
         \Log::info('User found for subscription', ['user_id' => $user->id]);
 
-        // Cancel existing subscription if any
-        $existingCount = $user->subscription()->update(['is_active' => false]);
-        \Log::info('Cancelled existing subscriptions', ['count' => $existingCount, 'user_id' => $user->id]);
+        // Check for existing subscription
+        $existingSubscription = $user->subscription()->first();
+        $newPlan = $transaction->plan;
+        $newSubjects = $transaction->subjects ?? [];
 
-        // Get plan duration
-        $pricing = $this->getPricing($transaction->plan);
-        if (!$pricing) {
-            \Log::warning('createSubscription: Invalid plan', ['plan' => $transaction->plan, 'transaction_id' => $transaction->id]);
+        // If user has existing subscription, merge subjects and keep larger plan
+        if ($existingSubscription && $existingSubscription->isValid()) {
+            \Log::info('Existing valid subscription found', [
+                'subscription_id' => $existingSubscription->id,
+                'existing_plan' => $existingSubscription->plan,
+                'new_plan' => $newPlan,
+            ]);
+
+            // Merge old subjects with new subjects (avoid duplicates)
+            $oldSubjects = $existingSubscription->subjects ?? [];
+            $mergedSubjects = array_unique(array_merge($oldSubjects, $newSubjects));
+            
+            // Keep the larger plan
+            $largePlan = $this->getLargerPlan($existingSubscription->plan, $newPlan);
+            \Log::info('Plan comparison', [
+                'existing_plan' => $existingSubscription->plan,
+                'new_plan' => $newPlan,
+                'larger_plan' => $largePlan,
+            ]);
+
+            // Update existing subscription
+            $existingSubscription->update([
+                'plan' => $largePlan,
+                'subjects' => array_values($mergedSubjects), // re-index array
+                'price' => $transaction->amount,
+                'valid_until' => now()->addDays(365)->toDateString(), // Extend validity
+                'is_active' => true,
+                'payment_reference' => $transaction->reference_code,
+            ]);
+
+            \Log::info('Subscription upgraded', [
+                'subscription_id' => $existingSubscription->id,
+                'old_plan' => $existingSubscription->plan,
+                'new_plan' => $largePlan,
+                'merged_subjects_count' => count($mergedSubjects),
+            ]);
+
             return;
         }
 
-        \Log::info('Plan pricing found', ['plan' => $transaction->plan, 'pricing' => $pricing]);
+        // No existing subscription or expired - delete old one and create new
+        if ($existingSubscription) {
+            \Log::info('Deleting expired subscription', ['subscription_id' => $existingSubscription->id]);
+            $existingSubscription->delete();
+        }
+
+        // Get plan duration
+        $pricing = $this->getPricing($newPlan);
+        if (!$pricing) {
+            \Log::warning('createSubscription: Invalid plan', ['plan' => $newPlan, 'transaction_id' => $transaction->id]);
+            return;
+        }
+
+        \Log::info('Plan pricing found', ['plan' => $newPlan, 'pricing' => $pricing]);
 
         $durationDays = $pricing['duration_days'];
         $validFrom = now()->toDateString();
         $validUntil = now()->addDays($durationDays)->toDateString();
 
-        \Log::info('Creating subscription', [
+        \Log::info('Creating new subscription', [
             'user_id' => $user->id,
-            'plan' => $transaction->plan,
+            'plan' => $newPlan,
             'valid_from' => $validFrom,
             'valid_until' => $validUntil,
             'price' => $transaction->amount,
@@ -395,8 +475,8 @@ class PaymentController extends Controller
         // Create new subscription
         $subscription = Subscription::create([
             'user_id' => $user->id,
-            'plan' => $transaction->plan,
-            'subjects' => $transaction->subjects,
+            'plan' => $newPlan,
+            'subjects' => $newSubjects,
             'price' => $transaction->amount,
             'valid_from' => $validFrom,
             'valid_until' => $validUntil,
@@ -405,5 +485,24 @@ class PaymentController extends Controller
         ]);
 
         \Log::info('Subscription created successfully', ['subscription_id' => $subscription->id, 'user_id' => $user->id]);
+    }
+
+    /**
+     * Compare two plans and return the larger one
+     * Plan order: 1subject < 3subject < 5subject < full
+     */
+    private function getLargerPlan(string $plan1, string $plan2): string
+    {
+        $planOrder = [
+            '1subject' => 1,
+            '3subject' => 3,
+            '5subject' => 5,
+            'full' => 999,
+        ];
+
+        $order1 = $planOrder[$plan1] ?? 0;
+        $order2 = $planOrder[$plan2] ?? 0;
+
+        return $order2 >= $order1 ? $plan2 : $plan1;
     }
 }

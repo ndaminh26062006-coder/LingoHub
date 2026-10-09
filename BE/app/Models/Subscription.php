@@ -26,9 +26,22 @@ class Subscription extends Model
         'valid_until' => 'date',
     ];
 
+    protected $appends = ['plan_name', 'plan_label'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Accessors
+    public function getPlanNameAttribute()
+    {
+        return $this->getPlanDisplay();
+    }
+
+    public function getPlanLabelAttribute()
+    {
+        return $this->getPlanLabel();
     }
 
     // Scopes
@@ -65,22 +78,22 @@ class Subscription extends Model
 
     public function getPlanDisplay()
     {
-        return match($this->price) {
-            19000 => 'Gói 1 Môn',
-            39000 => 'Gói 3 Môn',
-            49000 => 'Gói 5 Môn',
-            69000 => 'Gói Full Access',
+        return match($this->plan) {
+            '1subject' => 'Gói 1 Môn',
+            '3subject' => 'Gói 3 Môn',
+            '5subject' => 'Gói 5 Môn',
+            'full' => 'Gói Full Access',
             default => 'Gói ' . $this->plan,
         };
     }
 
     public function getPlanLabel()
     {
-        return match($this->price) {
-            19000 => '1 Môn',
-            39000 => '3 Môn',
-            49000 => '5 Môn',
-            69000 => 'Full Access',
+        return match($this->plan) {
+            '1subject' => '1 Môn',
+            '3subject' => '3 Môn',
+            '5subject' => '5 Môn',
+            'full' => 'Full Access',
             default => $this->plan,
         };
     }

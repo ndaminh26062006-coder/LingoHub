@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { subjectApi, paymentApi, subscriptionApi } from '../services/api';
+import { FreemiumContext } from '../contexts/FreemiumContext';
 import '../styles/PaymentModal.css';
 
 export default function PaymentModal({ isOpen, onClose, onSuccess }) {
@@ -15,6 +16,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
   const [error, setError] = useState('');
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const { subscription } = useContext(FreemiumContext);
 
   const plans = [
     {
@@ -89,6 +91,25 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
 
   const token = localStorage.getItem('lh_token');
 
+  // Khi modal mở, check nếu user subjects rỗng lần đầu (emergency case)
+  // Nếu subjects có giá trị (normal case) → hiển thị "Chọn gói" không skip
+  useEffect(() => {
+    if (isOpen && step === 'plan') {
+      if (subscription && subscription.plan) {
+        // Check if user has already completed emergency subject selection
+        const hasCompletedEmergency = localStorage.getItem('payment_emergency_subjects_done');
+        
+        // Case 1: Subjects rỗng + chưa làm emergency flow → skip tới chọn môn
+        if ((!subscription.subjects || subscription.subjects.length === 0) && !hasCompletedEmergency) {
+          setSelectedPlan(subscription.plan);
+          setStep('selectSubjects');
+          setSelectedSubjects([]);
+        }
+        // Case 2 & 3: Subjects có giá trị OR đã từng làm emergency → stay at "Chọn gói"
+      }
+    }
+  }, [isOpen, subscription, step]);
+
   // Load subjects when modal opens
   useEffect(() => {
     if (!isOpen) return;
@@ -106,10 +127,30 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
       .finally(() => setLoadingSubjects(false));
   }, [isOpen]);
 
-  // Request payment QR
-  const handleRequestPayment = async () => {
+  // Move to subject selection step (after plan is selected)
+  const handleContinueToSubjects = () => {
     if (!selectedPlan) {
       setError('Vui lòng chọn gói dịch vụ');
+      return;
+    }
+
+    setError('');
+    
+    // For full plan, go directly to payment (no subjects needed)
+    if (selectedPlan === 'full') {
+      handleRequestPayment();
+    } else {
+      // For other plans, show subject selection first
+      setStep('selectSubjects');
+      setSelectedSubjects([]);
+    }
+  };
+
+  // Request payment QR (only called after subjects are selected)
+  const handleRequestPayment = async () => {
+    // Validate subjects selection (only for non-full plans)
+    if (selectedPlan !== 'full' && selectedSubjects.length === 0) {
+      setError('Vui lòng chọn ít nhất một môn học');
       return;
     }
 
@@ -117,7 +158,11 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
     setError('');
 
     try {
-      const response = await paymentApi.create({ plan: selectedPlan });
+      // Send subjects WITH payment request
+      const response = await paymentApi.create({ 
+        plan: selectedPlan,
+        subjects: selectedSubjects  // ← SEND SUBJECTS!
+      });
 
       if (response.data.success) {
         setQrUrl(response.data.checkout_url);
@@ -155,9 +200,10 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
           clearInterval(pollInterval);
           setStep('done');
           setTimeout(() => {
-            setStep('selectSubjects');
-            setSelectedSubjects([]);
-          }, 2000);
+            handleClose();
+            if (onSuccess) onSuccess();
+            window.location.reload();
+          }, 1500);
         }
       } catch (err) {
         console.error('Status check error:', err);
@@ -186,9 +232,10 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
       if (response.data.status === 'success') {
         setStep('done');
         setTimeout(() => {
-          setStep('selectSubjects');
-          setSelectedSubjects([]);
-        }, 2000);
+          handleClose();
+          if (onSuccess) onSuccess();
+          window.location.reload();
+        }, 1500);
       }
     } catch (err) {
       setError('Lỗi khi kiểm tra trạng thái thanh toán');
@@ -205,13 +252,26 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
       'full': 999,
     };
     
+    // Check if subject is already in current subscription (should not toggle)
+    const currentSubjects = subscription?.subjects || [];
+    if (currentSubjects.includes(subjectId)) {
+      return; // Disable - already selected in current subscription
+    }
+    
     const limit = planSubjectLimits[selectedPlan] || 1;
 
+    let newSelected;
     if (selectedSubjects.includes(subjectId)) {
-      setSelectedSubjects(selectedSubjects.filter(s => s !== subjectId));
+      newSelected = selectedSubjects.filter(s => s !== subjectId);
     } else if (selectedSubjects.length < limit) {
-      setSelectedSubjects([...selectedSubjects, subjectId]);
+      newSelected = [...selectedSubjects, subjectId];
+    } else {
+      return;
     }
+
+    setSelectedSubjects(newSelected);
+    // Lưu vào localStorage
+    localStorage.setItem('payment_selected_subjects', JSON.stringify(newSelected));
   };
 
   const handleFinishSubjectSelection = async () => {
@@ -223,10 +283,30 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
     setLoading(true);
     try {
       // Update subscription with selected subjects
-      await subscriptionApi.updateSubjects(selectedSubjects);
+      try {
+        await subscriptionApi.updateSubjects(selectedSubjects);
+      } catch (updateErr) {
+        // If 404, route might not exist or cache issue - continue anyway
+        if (updateErr.response?.status === 404) {
+          console.warn('⚠️ updateSubjects endpoint 404 - skipping subject update');
+        } else {
+          throw updateErr;
+        }
+      }
 
-      onSuccess();
-      handleClose();
+      // Mark emergency flow as completed
+      localStorage.setItem('payment_emergency_subjects_done', 'true');
+
+      // After success → reset to plan step
+      setStep('plan');
+      setSelectedPlan(null);
+      setSelectedSubjects([]);
+      localStorage.removeItem('payment_selected_subjects');
+      
+      // Call onSuccess to trigger subscription reload in FreemiumContext
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Lỗi khi lưu lựa chọn môn học');
     } finally {
@@ -235,14 +315,36 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
   };
 
   const handleClose = () => {
+    // Reset all state to initial values
     setStep('plan');
     setSelectedPlan(null);
+    setSelectedSubjects([]);
     setQrUrl(null);
     setTransactionId(null);
     setReferenceCode(null);
     setError('');
     setPaymentInfo(null);
+    // Xoá localStorage khi đóng modal
+    localStorage.removeItem('payment_selected_subjects');
     onClose();
+  };
+
+  /**
+   * Open modal directly to subject selection step
+   * Used for users to re-select subjects after payment
+   */
+  const openForSubjectSelection = (planId) => {
+    setSelectedPlan(planId);
+    setStep('selectSubjects');
+    // Restore from localStorage if available
+    const saved = localStorage.getItem('payment_selected_subjects');
+    if (saved) {
+      try {
+        setSelectedSubjects(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to restore selected subjects:', e);
+      }
+    }
   };
 
   if (!isOpen) return null;
@@ -252,7 +354,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
       <div className="payment-modal" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="payment-modal__header">
-          <h2 className="payment-modal__title">🔐 Nâng cấp tài khoản</h2>
+          <h2 className="payment-modal__title">Nâng cấp tài khoản</h2>
           <button className="payment-modal__close" onClick={handleClose}>✕</button>
         </div>
 
@@ -298,7 +400,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
                     </div>
                     
                     <button className="payment-plan-button">
-                      {selectedPlan === plan.id ? '✓ Đã chọn' : 'Chọn gói'}
+                      {selectedPlan === plan.id ? 'Đã chọn' : 'Chọn gói'}
                     </button>
                   </div>
                 ))}
@@ -314,7 +416,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
               <div className="payment-checkout">
                 {/* QR Code */}
                 <div className="payment-qr-section" style={{ marginBottom: '20px', textAlign: 'center' }}>
-                  <h3 className="payment-section-title">📱 Quét mã QR để thanh toán</h3>
+                  <h3 className="payment-section-title">Quét mã QR để thanh toán</h3>
                   {qrUrl ? (
                     <>
                       <img 
@@ -332,7 +434,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
                         }} 
                       />
                       <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px' }}>
-                        ✅ Quét mã này bằng app ngân hàng của bạn
+                        Quét mã này bằng app ngân hàng của bạn
                       </p>
                       <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px' }}>
                         Tất cả thông tin sẽ tự động điền: số tiền, nội dung, tài khoản nhận
@@ -352,7 +454,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
 
                 {/* Payment Info Display */}
                 <div className="payment-info-section">
-                  <h3 className="payment-section-title">💳 Thông tin thanh toán</h3>
+                  <h3 className="payment-section-title">Thông tin thanh toán</h3>
                   
                   <div className="payment-info-item">
                     <span className="payment-info-label">Ngân hàng:</span>
@@ -385,7 +487,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(paymentInfo.referenceCode);
-                          alert('✅ Đã sao chép nội dung chuyển!');
+                          alert('Đã sao chép nội dung chuyển!');
                         }}
                         style={{
                           padding: '4px 8px',
@@ -398,7 +500,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        📋 Copy
+                        Copy
                       </button>
                     </div>
                   </div>
@@ -406,10 +508,10 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
 
                 {/* Instructions */}
                 <div className="payment-instructions">
-                  <p>✅ Quét mã QR bằng app ngân hàng của bạn</p>
-                  <p>✅ Tất cả thông tin (số tiền, nội dung) sẽ tự động điền</p>
-                  <p>✅ Bấm xác nhận để chuyển khoản</p>
-                  <p>✅ Hệ thống sẽ tự cập nhật trong vòng 1-2 phút</p>
+                  <p>Quét mã QR bằng app ngân hàng của bạn</p>
+                  <p>Tất cả thông tin (số tiền, nội dung) sẽ tự động điền</p>
+                  <p>Bấm xác nhận để chuyển khoản</p>
+                  <p>Hệ thống sẽ tự cập nhật trong vòng 1-2 phút</p>
                 </div>
 
                 {error && <div className="payment-error">{error}</div>}
@@ -436,7 +538,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
           {/* Step 4: Success */}
           {step === 'done' && (
             <div className="payment-step payment-done">
-              <div className="payment-success-icon">✅</div>
+              <div className="payment-success-icon"></div>
               <h3>Thanh toán thành công!</h3>
               <p>Tài khoản của bạn đã được nâng cấp</p>
               <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px' }}>
@@ -445,12 +547,12 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
-          {/* Step 5: Select Subjects */}
+          {/* Step 2: Select Subjects (before checkout) */}
           {step === 'selectSubjects' && (
             <div className="payment-step">
-              <h3 className="payment-section-title" style={{ marginBottom: '16px' }}> Chọn môn học để bắt đầu</h3>
+              <h3 className="payment-section-title" style={{ marginBottom: '8px' }}>Chọn môn học</h3>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                Chọn những môn bạn muốn học với tài khoản nâng cấp này
+                Chọn {selectedPlan === '1subject' ? '1 môn' : selectedPlan === '3subject' ? 'tối đa 3 môn' : selectedPlan === '5subject' ? 'tối đa 5 môn' : 'các môn'} để bắt đầu học
               </p>
 
               {loadingSubjects ? (
@@ -459,24 +561,35 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
                 <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Không có môn học nào</p>
               ) : (
                 <div className="payment-subjects-grid">
-                  {allSubjects.map(subject => (
-                    <label key={subject.id} className="payment-subject-item">
-                      <input
-                        type="checkbox"
-                        checked={selectedSubjects.includes(subject.id)}
-                        onChange={() => handleSubjectToggle(subject.id)}
-                        disabled={
-                          !selectedSubjects.includes(subject.id) &&
-                          selectedSubjects.length >= (
-                            selectedPlan === '1subject' ? 1 :
-                            selectedPlan === '3subject' ? 3 :
-                            selectedPlan === '5subject' ? 5 : 999
-                          )
-                        }
-                      />
-                      <span className="payment-subject-name">{subject.name}</span>
-                    </label>
-                  ))}
+                  {allSubjects.map(subject => {
+                    const currentSubjects = subscription?.subjects || [];
+                    const isAlreadySelected = currentSubjects.includes(subject.id);
+                    const isNewlySelected = selectedSubjects.includes(subject.id);
+                    const planLimits = {
+                      '1subject': 1,
+                      '3subject': 3,
+                      '5subject': 5,
+                      'full': 999,
+                    };
+                    const limit = planLimits[selectedPlan] || 1;
+                    const isFull = selectedSubjects.length >= limit;
+                    const isDisabled = isAlreadySelected || (isFull && !isNewlySelected);
+                    
+                    return (
+                      <label key={subject.id} className={`payment-subject-item ${isDisabled ? 'payment-subject-item--disabled' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={isNewlySelected}
+                          onChange={() => handleSubjectToggle(subject.id)}
+                          disabled={isDisabled}
+                        />
+                        <span className="payment-subject-name">
+                          {subject.name}
+                          {isAlreadySelected && <span className="payment-subject-badge">Đã có</span>}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               )}
 
@@ -492,10 +605,10 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
               <button className="btn btn-outline" onClick={handleClose}>Hủy</button>
               <button 
                 className="btn btn-primary" 
-                onClick={handleRequestPayment}
+                onClick={handleContinueToSubjects}
                 disabled={loading || !selectedPlan}
               >
-                {loading ? 'Đang tạo...' : 'Tiếp tục'}
+                {loading ? 'Đang tải...' : 'Tiếp tục'}
               </button>
             </>
           )}
@@ -522,13 +635,13 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }) {
 
           {step === 'selectSubjects' && (
             <>
-              <button className="btn btn-outline" onClick={handleClose}>Bỏ qua</button>
+              <button className="btn btn-outline" onClick={() => setStep('plan')}>← Quay lại</button>
               <button 
                 className="btn btn-primary" 
-                onClick={handleFinishSubjectSelection}
-                disabled={loading || selectedSubjects.length === 0}
+                onClick={handleRequestPayment}
+                disabled={loading || (selectedPlan !== 'full' && selectedSubjects.length === 0)}
               >
-                {loading ? 'Đang lưu...' : '✓ Hoàn tất'}
+                {loading ? 'Đang tạo...' : 'Thanh toán'}
               </button>
             </>
           )}

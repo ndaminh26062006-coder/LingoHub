@@ -98,11 +98,12 @@
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 24px;
+  border: 2px solid #000;
 }
 
 .transactions-table thead {
   background: var(--bg-primary);
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid #000;
 }
 
 .transactions-table th {
@@ -112,12 +113,26 @@
   font-size: 13px;
   color: var(--text-secondary);
   text-transform: uppercase;
+  border-right: 2px solid #000;
+}
+
+.transactions-table th:last-child {
+  border-right: none;
 }
 
 .transactions-table td {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid #000;
+  border-right: 2px solid #000;
   font-size: 14px;
+}
+
+.transactions-table td:last-child {
+  border-right: none;
+}
+
+.transactions-table tbody tr:last-child td {
+  border-bottom: 2px solid #000;
 }
 
 .transactions-table tbody tr:hover {
@@ -136,7 +151,7 @@
 
 .amount {
   font-weight: 600;
-  color: var(--orange);
+  color: #000;
 }
 
 .reference-code {

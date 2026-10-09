@@ -55,7 +55,9 @@ Route::post('payments/sepay/webhook', [PaymentController::class, 'handleWebhook'
 
 // Comments stats (public read)
 Route::get('comments/{commentableType}/{commentableId}', [CommentController::class, 'index']);
-Route::get('likes/stats/{likeableType}/{likeableId}', [LikeController::class, 'stats']);
+
+// Likes stats - public endpoint, no middleware
+Route::get('likes/stats/{likeableType}/{likeableId}', [LikeController::class, 'stats'])->where('likeableId', '\d+');
 
 // Public stats for homepage
 Route::get('stats/dashboard', [StatsController::class, 'dashboard']);
@@ -118,6 +120,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('usage/check',   [UsageController::class, 'check']);
     Route::post('usage/consume', [UsageController::class, 'consume']);
     Route::post('exams/{exam}/submit',            [ExamController::class,      'submit']);
+    Route::post('exams/{exam}/record-attempt',    [ExamController::class,      'recordAttempt']);
     Route::post('documents/{document}/submit',    [DocumentController::class,  'submit']);
     Route::post('essays/{essay}/unlock-sample',   [EssayController::class,     'unlockSample']);
 
@@ -132,16 +135,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // ── Admin API (auth + admin role check) ────────────────────────────────────
-Route::middleware(['auth:sanctum', 'superAdmin'])->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'contentAdmin'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('stats',                           [AdminController::class,     'stats']);
-
-    // Users (Super Admin only)
-    Route::get('users',                           [AdminController::class,     'users']);
-    Route::get('users/{user}',                    [AdminController::class,     'showUser']);
-    Route::put('users/{user}',                    [AdminController::class,     'updateUser']);
-    Route::put('users/{user}/toggle-block',       [AdminController::class,     'toggleBlock']);
-    Route::delete('users/{user}',                 [AdminController::class,     'deleteUser']);
 
     // Freemium (development only)
     Route::delete('freemium/reset/{device_id}',  [FreemiumController::class,  'resetUsage']);
@@ -152,14 +148,29 @@ Route::middleware(['auth:sanctum', 'superAdmin'])->prefix('admin')->group(functi
     Route::delete('categories/{category}',        [CategoryController::class,  'destroy']);
 });
 
+// ── Super Admin Routes (auth + super admin only) ──────────────────────────
+Route::middleware(['auth:sanctum', 'superAdmin'])->prefix('admin')->group(function () {
+    // Users management - full permissions (Super Admin only)
+    Route::get('users',                           [AdminController::class,     'users']);
+    Route::get('users/{user}',                    [AdminController::class,     'showUser']);
+    Route::put('users/{user}',                    [AdminController::class,     'updateUser']);
+    Route::put('users/{user}/toggle-block',       [AdminController::class,     'toggleBlock']);
+    Route::delete('users/{user}',                 [AdminController::class,     'deleteUser']);
+});
+
 // ── Admin Content Routes (auth + admin or content admin) ──────────────────
 Route::middleware(['auth:sanctum', 'contentAdmin'])->prefix('admin')->group(function () {
+    // Users (Content Admin - read only, no permissions to edit/block/delete)
+    Route::get('users',                           [AdminController::class,     'users']);
+    Route::get('users/{user}',                    [AdminController::class,     'showUser']);
+
     // Subjects (admin)
     Route::post('subjects',                           [SubjectController::class,   'store']);
     Route::put('subjects/{subject}',                  [SubjectController::class,   'update']);
     Route::delete('subjects/{subject}',               [SubjectController::class,   'destroy']);
 
     // Documents (tài liệu trắc nghiệm)
+    Route::get('documents',                          [DocumentController::class, 'adminIndex']);
     Route::post('documents',                          [DocumentController::class,  'store']);
     Route::put('documents/{document}',                [DocumentController::class,  'update']);
     Route::delete('documents/{document}',             [DocumentController::class,  'destroy']);
@@ -183,6 +194,7 @@ Route::middleware(['auth:sanctum', 'contentAdmin'])->prefix('admin')->group(func
 
     // Flashcards
     Route::get('flashcards-list',                 [FlashcardController::class, 'adminIndex']);
+    Route::post('flashcards',                     [FlashcardController::class, 'store']);
     Route::put('flashcards/{deck}',               [FlashcardController::class, 'update']);
     Route::delete('flashcards/{deck}',            [FlashcardController::class, 'destroy']);
 });

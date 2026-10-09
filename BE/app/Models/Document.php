@@ -40,4 +40,9 @@ class Document extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function likes()
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
 }

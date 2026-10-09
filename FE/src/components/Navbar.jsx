@@ -72,7 +72,10 @@ function ProfileDropdown({ user, onLogout }) {
 
         const response = await subscriptionApi.me();
         const data = response.data;
-        const subscription = data.subscription;
+        if (data.has_subscription && data.subscription) {
+          setSubscription(data.subscription);
+          console.log('Subscription loaded:', data.subscription);
+        }
       } catch (err) {
         console.error('Failed to fetch subscription:', err);
       }
@@ -218,13 +221,13 @@ const CAU_HOI_ITEMS = [
 const DE_THI_ITEMS = [
   {
     to:   '/exams?cat=chuyen-nganh',
-    icon: '🔬',
+    icon: '',
     label: 'Môn chuyên ngành',
     desc:  'Đề thi thử các môn chuyên ngành',
   },
   {
     to:   '/exams?cat=ly-luan',
-    icon: '📖',
+    icon: '',
     label: 'Môn lý luận chính trị',
     desc:  'Triết học, Tư tưởng HCM, Lịch sử Đảng...',
   },
@@ -233,13 +236,13 @@ const DE_THI_ITEMS = [
 const TU_LUAN_ITEMS = [
   {
     to: '/tu-luan',
-    icon: '✍️',
+    icon: '',
     label: 'Làm bài tự luận',
     desc: 'AI chấm bài theo rubric chuẩn đại học',
   },
   {
     to: '/tu-luan',
-    icon: '📄',
+    icon: '',
     label: 'Xem bài mẫu',
     desc: 'Tham khảo bài làm mẫu điểm 10',
   },

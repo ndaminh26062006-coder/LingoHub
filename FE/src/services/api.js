@@ -5,6 +5,7 @@ import axios from 'axios';
 // ─────────────────────────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://api.lingohub.io.vn/api',
+  // baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
   withCredentials: true,
 });
@@ -29,10 +30,18 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
 
-    // 403 is expected for freemium paywall - don't log as error
+    // 403 is expected for freemium paywall - resolve it silently so caller can handle
     if (status === 403) {
-      // Silently reject - FreemiumContext handles it
-      return Promise.reject(err);
+      // Return error response instead of rejecting, so FreemiumContext can check status
+      return Promise.resolve({
+        status: 403,
+        data: err.response?.data || { message: 'Access denied' },
+      });
+    }
+
+    // Log actual errors (not 403 paywall)
+    if (status && status >= 400) {
+      console.warn(`API Error ${status}:`, err.response?.data?.message || err.message);
     }
 
     return Promise.reject(err);
@@ -107,10 +116,11 @@ export const documentApi = {
 // EXAMS (đề thi thử - bảng exams mới)
 // ─────────────────────────────────────────────────────────────────────────────
 export const examApi = {
-  list:      params => api.get('/exams', { params }),
-  get:       id     => api.get(`/exams/${id}`),
-  questions: id     => api.get(`/exams/${id}/questions`),
-  submit:    (id, answers) => api.post(`/exams/${id}/submit`, { answers }),
+  list:           params => api.get('/exams', { params }),
+  get:            id     => api.get(`/exams/${id}`),
+  questions:      id     => api.get(`/exams/${id}/questions`),
+  submit:         (id, answers) => api.post(`/exams/${id}/submit`, { answers }),
+  recordAttempt:  (id, data) => api.post(`/exams/${id}/record-attempt`, data),
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -189,6 +199,7 @@ export const subscriptionApi = {
   me:              ()   => api.get('/subscriptions/me'),
   checkSubject:    data => api.post('/subscriptions/check-subject', data),
   history:         ()   => api.get('/subscriptions/history'),
+  updateSubjects:  data => api.post('/subscriptions/update-subjects', { subjects: data }),
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -219,6 +230,7 @@ export const adminApi = {
   deleteSubject: id        => api.delete(`/admin/subjects/${id}`),
 
   // Documents (tài liệu trắc nghiệm)
+  getDocuments:  params    => api.get('/admin/documents', { params }),
   createDocument: data      => api.post('/admin/documents', data),
   updateDocument: (id, data) => api.put(`/admin/documents/${id}`, data),
   deleteDocument: id        => api.delete(`/admin/documents/${id}`),
@@ -226,20 +238,22 @@ export const adminApi = {
   bulkStoreDocumentQuestions: (docId, questions) => api.post(`/admin/documents/${docId}/questions/bulk`, { questions }),
 
   // Exams (đề thi thử)
-  createExam: data      => api.post('/admin/exams', data),
+  getExams:      params    => api.get('/admin/exams', { params }),
+  createExam:    data      => api.post('/admin/exams', data),
   updateExam: (id, data) => api.put(`/admin/exams/${id}`, data),
   deleteExam: id        => api.delete(`/admin/exams/${id}`),
   getExamQuestions: id  => api.get(`/admin/exams/${id}/questions`),
   bulkStoreQuestions: (examId, questions) => api.post(`/admin/exams/${examId}/questions/bulk`, { questions }),
 
   // Essays
-  essays:       ()         => api.get('/admin/essays'),
+  essays:       params     => api.get('/admin/essays', { params }),
   createEssay:  data       => api.post('/admin/essays', data),
   updateEssay:  (id, data) => api.put(`/admin/essays/${id}`, data),
   deleteEssay:  id         => api.delete(`/admin/essays/${id}`),
 
   // Flashcards
-  flashcards:        ()         => api.get('/admin/flashcards'),
+  getFlashcards:     ()         => api.get('/admin/flashcards-list'),
+  createFlashcard:   data       => api.post('/admin/flashcards', data),
   updateFlashcard:   (id, data) => api.put(`/admin/flashcards/${id}`, data),
   deleteFlashcard:   id         => api.delete(`/admin/flashcards/${id}`),
 };

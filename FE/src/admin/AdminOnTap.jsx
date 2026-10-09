@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { categoryApi, subjectApi, adminApi, documentApi, toArray } from '../services/api';
+import Pagination from '../components/Pagination';
 import ImportQuestionsModal from './ImportQuestionsModal';
 import './AdminLayout.css';
 import './AdminOnTap.css';
@@ -446,10 +447,16 @@ function StepQuestions({ exam, onDone, onBack, isEdit }) {
 // Main AdminOnTap
 // ─────────────────────────────────────────────────────────────────────────────
 export default function AdminOnTap() {
-  const [categories,  setCategories]  = useState([]);
-  const [exams,       setExams]       = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [search,      setSearch]      = useState('');
+  const [categories,     setCategories]     = useState([]);
+  const [subjects,       setSubjects]       = useState([]);
+  const [exams,          setExams]          = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [search,         setSearch]         = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterSubjects, setFilterSubjects] = useState([]);
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [currentPage,    setCurrentPage]    = useState(1);
+  const [paginationData, setPaginationData] = useState({ total: 0, last_page: 1, per_page: 8 });
 
   // Wizard: null | 'step1' | 'step2'
   const [wizard,      setWizard]      = useState(null);
@@ -460,22 +467,46 @@ export default function AdminOnTap() {
 
   const reload = () => {
     setLoading(true);
+    const params = { page: currentPage, per_page: 8 };
+    if (search) params.q = search;
+    if (filterCategory) params.category = filterCategory;
+    if (filterSubjects.length > 0) params.subjects = filterSubjects.join(',');
+
     Promise.all([
       categoryApi.list().then(r => toArray(r.data)),
-      documentApi.list({ per_page: 100 }).then(r => toArray(r.data)),
+      adminApi.getDocuments(params),
     ])
-      .then(([cats, docs]) => { setCategories(cats); setExams(docs); })
+      .then(([cats, response]) => {
+        setCategories(cats);
+        const apiData = response.data;
+        const docData = Array.isArray(apiData.data) ? apiData.data : [];
+        setExams(docData);
+        setPaginationData({
+          total: apiData.total || 0,
+          last_page: apiData.last_page || 1,
+          per_page: apiData.per_page || 8,
+          current_page: apiData.current_page || 1
+        });
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { reload(); }, [currentPage, search, filterCategory, filterSubjects]);
 
-  const filteredExams = exams.filter(e =>
-    !search ||
-    e.title?.toLowerCase().includes(search.toLowerCase()) ||
-    e.subject?.toLowerCase().includes(search.toLowerCase())
-  );
+  // Load all subjects (independent from category)
+  useEffect(() => {
+    subjectApi.list()
+      .then(r => setSubjects(toArray(r.data)))
+      .catch(() => setSubjects([]));
+  }, []);
+
+  const filteredExams = exams;
+
+  const handleCategoryChange = (value) => {
+    setFilterCategory(value);
+    setCurrentPage(1);
+  };
 
   // Mở wizard tạo mới
   const openCreate = () => {
@@ -559,12 +590,31 @@ export default function AdminOnTap() {
       </div>
 
       <div className="admin-card" style={{ marginBottom:16 }}>
-        <div className="admin-filter-bar">
-          <div className="admin-search">
+        <div className="admin-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div className="admin-search" style={{ flex: 1, minWidth: 200 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input placeholder="Tìm đề thi..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <span style={{ fontSize:13, color:'var(--text-muted)', marginLeft:'auto' }}>{filteredExams.length} kết quả</span>
+
+          <select 
+            className="admin-form-select" 
+            value={filterCategory} 
+            onChange={e => handleCategoryChange(e.target.value)}
+            style={{ padding: '6px 10px', fontSize: 12, minWidth: 120, flex: 0.5 }}
+          >
+            <option value="">Danh mục</option>
+            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>)}
+          </select>
+
+          <button 
+            className="btn btn-outline" 
+            onClick={() => setShowSubjectModal(true)}
+            style={{ padding: '6px 12px', fontSize: 12, minWidth: 120 }}
+          >
+            📚 Môn ({filterSubjects.length})
+          </button>
+
+          <span style={{ fontSize:12, color:'var(--text-muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{filteredExams.length} / {paginationData.total} kết quả</span>
         </div>
       </div>
 
@@ -633,6 +683,79 @@ export default function AdminOnTap() {
           </table>
         </div>
       </div>
+
+      {/* Subject Multi-Select Modal */}
+      {showSubjectModal && (
+        <div className="admin-modal-overlay" onClick={() => setShowSubjectModal(false)}>
+          <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 700 }}>
+            <div className="admin-modal__head">
+              <span className="admin-modal__title">Chọn môn học</span>
+              <button className="admin-modal__close" onClick={() => setShowSubjectModal(false)}>✕</button>
+            </div>
+            <div className="admin-modal__body" style={{ padding: '20px' }}>
+              {subjects.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Không có môn học nào</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                  {subjects.map(sub => (
+                    <label 
+                      key={sub.id} 
+                      style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        alignItems: 'center', 
+                        padding: '16px', 
+                        cursor: 'pointer', 
+                        border: '2px solid var(--gray-200)',
+                        borderRadius: '8px',
+                        textAlign: 'center',
+                        transition: 'all 0.2s',
+                        background: filterSubjects.includes(String(sub.id)) ? 'var(--blue-50)' : 'white',
+                        borderColor: filterSubjects.includes(String(sub.id)) ? 'var(--navy)' : 'var(--gray-200)',
+                      }}
+                      onMouseOver={e => {
+                        if (!filterSubjects.includes(String(sub.id))) {
+                          e.currentTarget.style.borderColor = 'var(--gray-300)';
+                        }
+                      }}
+                      onMouseOut={e => {
+                        if (!filterSubjects.includes(String(sub.id))) {
+                          e.currentTarget.style.borderColor = 'var(--gray-200)';
+                        }
+                      }}
+                    >
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>{sub.icon}</div>
+                      <span style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text-primary)' }}>{sub.name}</span>
+                      <input 
+                        type="checkbox" 
+                        checked={filterSubjects.includes(String(sub.id))}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setFilterSubjects(p => [...p, String(sub.id)]);
+                          } else {
+                            setFilterSubjects(p => p.filter(id => id !== String(sub.id)));
+                          }
+                          setCurrentPage(1);
+                        }}
+                        style={{ cursor: 'pointer', width: 18, height: 18, minWidth: 18, minHeight: 18, margin: 0, padding: 0 }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="admin-modal__footer">
+              <button className="btn btn-primary" onClick={() => setShowSubjectModal(false)}>Xong</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Pagination 
+        currentPage={currentPage} 
+        lastPage={paginationData.last_page} 
+        onPageChange={setCurrentPage} 
+      />
     </div>
   );
 }

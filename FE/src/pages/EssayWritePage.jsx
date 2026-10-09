@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { essayApi } from '../services/api';
-import CommentsSection from '../components/CommentsSection';
-import LikeButton from '../components/LikeButton';
 import './ExamPage.css';
 
 // Simulate AI grading
@@ -76,16 +74,16 @@ function StickyTimerBar({ timeLimit, isActive, isVisible }) {
       zIndex: 1000,
       boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
     }}>
-      ⏱ Thời gian: {minutes}:{seconds < 10 ? '0' : ''}{seconds}
+      Thời gian: {minutes}:{seconds < 10 ? '0' : ''}{seconds}
     </div>
   );
 }
 
 const RUBRIC = [
-  { id: 'intro',   label: 'Mở bài',           max: 1, icon: '📝', desc: 'Giới thiệu vấn đề rõ ràng, dẫn dắt logic' },
-  { id: 'main',    label: 'Luận điểm chính',  max: 6, icon: '🎯', desc: 'Trình bày đủ luận điểm, lập luận chặt chẽ, có dẫn chứng' },
-  { id: 'apply',   label: 'Liên hệ thực tế',  max: 2, icon: '💡', desc: 'Liên hệ bản thân, thực tiễn, góc nhìn sáng tạo' },
-  { id: 'writing', label: 'Chính tả & Trình bày', max: 1, icon: '✍️', desc: 'Không mắc lỗi chính tả, bố cục đoạn văn rõ ràng' },
+  { id: 'intro',   label: 'Mở bài',           max: 1, icon: '', desc: 'Giới thiệu vấn đề rõ ràng, dẫn dắt logic' },
+  { id: 'main',    label: 'Luận điểm chính',  max: 6, icon: '', desc: 'Trình bày đủ luận điểm, lập luận chặt chẽ, có dẫn chứng' },
+  { id: 'apply',   label: 'Liên hệ thực tế',  max: 2, icon: '', desc: 'Liên hệ bản thân, thực tiễn, góc nhìn sáng tạo' },
+  { id: 'writing', label: 'Chính tả & Trình bày', max: 1, icon: '', desc: 'Không mắc lỗi chính tả, bố cục đoạn văn rõ ràng' },
 ];
 
 function RubricBar({ item, score, max, animate }) {
@@ -160,10 +158,10 @@ export default function EssayWritePage() {
   const wordCount = answer.trim().split(/\s+/).filter(Boolean).length;
   const total = scores ? parseFloat(Object.values(scores).reduce((a, b) => a + b, 0).toFixed(1)) : 0;
   const totalMax = 10;
-  const grade = total >= 8.5 ? { label: 'Xuất sắc',   color: '#22c55e',       emoji: '🏆' }
-               : total >= 7   ? { label: 'Khá',         color: '#3b82f6',       emoji: '👍' }
-               : total >= 5   ? { label: 'Trung bình',  color: 'var(--orange)', emoji: '📖' }
-               :                { label: 'Cần cố gắng', color: '#ef4444',       emoji: '💪' };
+  const grade = total >= 8.5 ? { label: 'Xuất sắc',   color: '#22c55e',       emoji: '' }
+               : total >= 7   ? { label: 'Khá',         color: '#3b82f6',       emoji: '' }
+               : total >= 5   ? { label: 'Trung bình',  color: 'var(--orange)', emoji: '' }
+               :                { label: 'Cần cố gắng', color: '#ef4444',       emoji: '' };
 
   const handleSubmit = () => {
     if (answer.trim().length < 50) return;
@@ -299,7 +297,7 @@ export default function EssayWritePage() {
               fontSize: '14px',
             }}
           >
-            ✏️ Bài làm
+            Bài làm
           </button>
           <button
             onClick={() => setTab('result')}
@@ -342,7 +340,7 @@ export default function EssayWritePage() {
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                {wordCount < 100 ? <span style={{ color: '#ef4444' }}>⚠️ {wordCount} từ (khuyến nghị ≥ 150)</span> : `✅ ${wordCount} từ`}
+                {wordCount < 100 ? <span style={{ color: '#ef4444' }}>{wordCount} từ (khuyến nghị ≥ 150)</span> : `${wordCount} từ`}
               </span>
             </div>
             {!submitted ? (
@@ -417,11 +415,11 @@ export default function EssayWritePage() {
 
                 {/* Comments */}
                 <div style={{ marginBottom: '32px' }}>
-                  <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>💬 Nhận xét từ AI</h4>
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>Nhận xét từ AI</h4>
                   {[
-                    { icon:'✅', color:'#22c55e', title:'Điểm mạnh', text: scores.main >= 4 ? 'Luận điểm chính trình bày tương đối đầy đủ, có sự mạch lạc trong lập luận.' : 'Bạn đã cố gắng trình bày vấn đề. Cần rèn luyện thêm cách xây dựng luận điểm.' },
-                    { icon:'⚠️', color:'var(--orange)', title:'Cần cải thiện', text: scores.apply < 1.5 ? 'Phần liên hệ thực tiễn còn mỏng, nên bổ sung ví dụ cụ thể từ thực tế Việt Nam.' : 'Bài viết cần chú ý hơn đến tính hệ thống và cấu trúc đoạn văn.' },
-                    { icon:'💡', color:'var(--navy)', title:'Gợi ý học tập', text: 'Tham khảo bài làm mẫu điểm 10 bên dưới để học cách diễn đạt và sắp xếp ý tưởng.' },
+                    { icon:'', color:'#22c55e', title:'Điểm mạnh', text: scores.main >= 4 ? 'Luận điểm chính trình bày tương đối đầy đủ, có sự mạch lạc trong lập luận.' : 'Bạn đã cố gắng trình bày vấn đề. Cần rèn luyện thêm cách xây dựng luận điểm.' },
+                    { icon:'', color:'var(--orange)', title:'Cần cải thiện', text: scores.apply < 1.5 ? 'Phần liên hệ thực tiễn còn mỏng, nên bổ sung ví dụ cụ thể từ thực tế Việt Nam.' : 'Bài viết cần chú ý hơn đến tính hệ thống và cấu trúc đoạn văn.' },
+                    { icon:'', color:'var(--navy)', title:'Gợi ý học tập', text: 'Tham khảo bài làm mẫu điểm 10 bên dưới để học cách diễn đạt và sắp xếp ý tưởng.' },
                   ].map((c, i) => (
                     <div key={i} style={{ padding: '16px', background: 'var(--gray-100)', borderRadius: '6px', borderLeft: `4px solid ${c.color}`, marginBottom: '12px' }}>
                       <div style={{ display: 'flex', gap: '12px' }}>
@@ -521,14 +519,6 @@ export default function EssayWritePage() {
         isActive={timerActive && !submitted}
         isVisible={showStickyTimer}
       />
-
-      {/* Comments & Likes */}
-      <div className="exam-footer-section container">
-        <div className="exam-footer-row">
-          <LikeButton likeableType="EssayQuestion" likeableId={essayId} />
-        </div>
-        <CommentsSection commentableType="EssayQuestion" commentableId={essayId} />
-      </div>
     </div>
   );
 }

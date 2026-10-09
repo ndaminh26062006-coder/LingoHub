@@ -59,12 +59,19 @@ export default function PaymentHistoryPage() {
     }
   };
 
-  const getPlanLabel = (plan) => {
+  const getPlanLabel = (plan, planName) => {
+    // Use plan_name from API if available
+    if (planName) return planName;
+    
+    // Fallback to local mapping
     const planLabels = {
+      '1subject': 'Gói 1 Môn',
+      '3subject': 'Gói 3 Môn',
+      '5subject': 'Gói 5 Môn',
+      'full': 'Gói Full Access',
       '1month': '1 Môn Lẻ',
       '3month': '3 Môn Lẻ',
       '5month': '5 Môn Lẻ',
-      'full': 'Full Access',
     };
     return planLabels[plan] || plan;
   };
@@ -141,14 +148,14 @@ export default function PaymentHistoryPage() {
                     <td>{txn.created_at_full}</td>
                     <td>
                       <span className="plan-badge">
-                        {getPlanLabel(txn.plan)}
+                        {getPlanLabel(txn.plan, txn.plan_name)}
                       </span>
                     </td>
                     <td className="amount">{formatAmount(txn.amount)}</td>
                     <td className="reference-code">{txn.reference_code}</td>
                     <td>
                       <span className="status-badge status-success">
-                        ✅ Thành công
+                        Thành công
                       </span>
                     </td>
                   </tr>

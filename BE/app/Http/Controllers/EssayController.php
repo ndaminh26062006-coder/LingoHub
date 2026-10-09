@@ -65,14 +65,39 @@ class EssayController extends Controller
     // â”€â”€ Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     // GET /api/admin/essays
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
-        $essays = EssayQuestion::with(['subjectModel.category'])
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn ($e) => $this->format($e, false));
+        $query = EssayQuestion::with(['subjectModel.category']);
 
-        return response()->json($essays);
+        if ($request->filled('q')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->q . '%')
+                  ->orWhere('question', 'like', '%' . $request->q . '%');
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->whereHas('subjectModel.category', fn ($q) =>
+                $q->where('id', $request->category)
+                  ->orWhere('slug', $request->category)
+            );
+        }
+
+        if ($request->filled('subjects')) {
+            $subjects = explode(',', $request->subjects);
+            $query->whereIn('subject_id', $subjects);
+        }
+
+        $perPage = $request->input('per_page', 8);
+        $essays = $query->orderByDesc('created_at')->paginate($perPage);
+
+        return response()->json([
+            'data' => $essays->getCollection()->map(fn ($e) => $this->format($e, false)),
+            'current_page' => $essays->currentPage(),
+            'last_page'    => $essays->lastPage(),
+            'total'        => $essays->total(),
+            'per_page'     => $essays->perPage(),
+        ]);
     }
 
     // POST /api/admin/essays

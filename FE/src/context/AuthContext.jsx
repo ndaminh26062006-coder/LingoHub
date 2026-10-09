@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
     }
     localStorage.removeItem('lh_token');
     localStorage.removeItem('lh_user');
+    // NOTE: NOT clearing like cache - votes persist across logout/login
     setUser(null);
   };
 

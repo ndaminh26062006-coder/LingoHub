@@ -71,8 +71,8 @@ export default function ImportQuestionsModal({ exam, onClose, onSuccess }) {
         <div className="admin-modal__head">
           <span className="admin-modal__title">
             {step === 'input' && 'Nhập câu hỏi từ text'}
-            {step === 'preview' && '👁️ Xem trước câu hỏi'}
-            {step === 'done' && '✅ Import thành công'}
+            {step === 'preview' && 'Xem trước câu hỏi'}
+            {step === 'done' && 'Import thành công'}
           </span>
           {step !== 'done' && (
             <button className="admin-modal__close" onClick={onClose}>✕</button>
@@ -185,7 +185,7 @@ export default function ImportQuestionsModal({ exam, onClose, onSuccess }) {
           {/* STEP 3: Done */}
           {step === 'done' && (
             <div style={{ textAlign: 'center', padding: 20 }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+              <div style={{ fontSize: 48, marginBottom: 12 }}></div>
               <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
                 Import thành công!
               </div>

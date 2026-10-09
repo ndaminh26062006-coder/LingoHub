@@ -419,6 +419,18 @@
   border-color: var(--navy);
 }
 
+.payment-subject-item--disabled {
+  opacity: 0.6;
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  cursor: not-allowed;
+}
+
+.payment-subject-item--disabled:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
 .payment-subject-item input[type="checkbox"] {
   cursor: pointer;
 }
@@ -436,4 +448,18 @@
 .payment-subject-name {
   font-size: 13px;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.payment-subject-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  white-space: nowrap;
 }

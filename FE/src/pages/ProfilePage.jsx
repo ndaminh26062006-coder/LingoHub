@@ -99,10 +99,10 @@ export default function ProfilePage() {
           {/* Tabs */}
           <div className="profile-tabs">
             <button className={`profile-tab ${tab === 'info' ? 'active' : ''}`} onClick={() => setTab('info')}>
-              📋 Thông tin cá nhân
+              Thông tin cá nhân
             </button>
             <button className={`profile-tab ${tab === 'security' ? 'active' : ''}`} onClick={() => setTab('security')}>
-              🔐 Bảo mật
+              Bảo mật
             </button>
           </div>
 
@@ -147,7 +147,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="pf-actions">
-                {saved && <span className="pf-saved">✅ Đã lưu thay đổi!</span>}
+                {saved && <span className="pf-saved">Đã lưu thay đổi!</span>}
                 <button type="submit" className="btn btn-primary">Lưu thay đổi</button>
               </div>
             </form>
@@ -177,7 +177,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="pf-actions">
-                {pwSaved && <span className="pf-saved">✅ Đã cập nhật mật khẩu!</span>}
+                {pwSaved && <span className="pf-saved">Đã cập nhật mật khẩu!</span>}
                 <button type="submit" className="btn btn-primary">Cập nhật mật khẩu</button>
               </div>
             </form>

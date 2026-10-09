@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { documentApi, subjectApi, categoryApi, toArray, subscriptionApi } from '../services/api';
-import useFreemium from '../hooks/useFreemium';
+import { documentApi, subjectApi, categoryApi, toArray } from '../services/api';
 import PageHeader from '../components/PageHeader';
 import QuickLikeWidget from '../components/QuickLikeWidget';
 import CommentsModal from '../components/CommentsModal';
@@ -10,7 +9,6 @@ import './ExamsPage.css';
 
 export default function CategoriesPage() {
   const navigate = useNavigate();
-  const { checkAccess } = useFreemium();
 
   // State for Subjects view
   const [subjects,      setSubjects]      = useState([]);
@@ -76,30 +74,10 @@ export default function CategoriesPage() {
       return sortTime === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
-  // Handle practice button click with freemium check
-  const handlePracticeClick = useCallback(async (doc) => {
-    const result = await checkAccess('document');
-    if (result.can_access) {
-      // Check if user has access to this subject
-      const token = localStorage.getItem('lh_token');
-      if (token && selectedSubject?.id) {
-        try {
-          const response = await subscriptionApi.checkSubject({ subject_id: selectedSubject.id });
-          
-          const data = response.data;
-          if (!data.has_access) {
-            setAccessDeniedOpen(true);
-            return;
-          }
-        } catch (err) {
-          console.error('Error checking subject access:', err);
-        }
-      }
-      
-      navigate(`/document/${doc.id}?mode=practice`);
-    }
-    // If can't access, checkAccess already shows paywall modal
-  }, [navigate, checkAccess, selectedSubject]);
+  // Handle practice button click - documents always free
+  const handlePracticeClick = useCallback((doc) => {
+    navigate(`/document/${doc.id}?mode=practice`);
+  }, [navigate]);
 
   return (
     <div className="exams-page page-enter">

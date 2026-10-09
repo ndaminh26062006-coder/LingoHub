@@ -314,7 +314,7 @@ export default function DashboardPage() {
                         <div className="recent-meta">
                           <span>📅 {e.date}</span>
                           <span>⏱ {e.time}</span>
-                          <span className="ri-correct">✓ {e.correct}</span>
+                          <span className="ri-correct">{e.correct}</span>
                           <span className="ri-wrong">✗ {e.wrong}</span>
                         </div>
                       </div>

@@ -77,28 +77,16 @@ export default function ExamsPage() {
 
   // Handle exam button clicks with freemium check
   const handleExamClick = useCallback(async (exam, mode) => {
-    const result = await checkAccess('exam');
+    const result = await checkAccess('exam', {
+      exam_id: exam.id,
+      subject_id: exam.subject_id,
+    });
     if (result.can_access) {
-      // Check if user has access to this subject
-      const token = localStorage.getItem('lh_token');
-      if (token && selectedSubject?.id) {
-        try {
-          const response = await subscriptionApi.checkSubject({ subject_id: selectedSubject.id });
-          
-          const data = response.data;
-          if (!data.has_access) {
-            setAccessDeniedOpen(true);
-            return;
-          }
-        } catch (err) {
-          console.error('Error checking subject access:', err);
-        }
-      }
-      
+      // checkAccess already verified access (subscription or free attempts)
       navigate(`/exam/${exam.id}?mode=${mode}`);
     }
     // If can't access, checkAccess already shows paywall modal
-  }, [navigate, checkAccess, selectedSubject]);
+  }, [navigate, checkAccess]);
 
   return (
     <div className="exams-page page-enter">
@@ -211,7 +199,7 @@ export default function ExamsPage() {
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <button className="btn btn-primary" onClick={() => handleExamClick(exam, 'exam')}>⏱Thi thật</button>
+                        <button className="btn btn-primary" onClick={() => handleExamClick(exam, 'exam')}>Thi thật</button>
                       </div>
                     </div>
                   ))}

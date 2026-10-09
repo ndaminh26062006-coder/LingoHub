@@ -18,16 +18,27 @@ class FreemiumController extends Controller
      * POST /api/freemium/check-access
      * Body: {
      *   "feature": "essay|exam|document|flashcard",
+     *   "exam_id": 1 (optional, for exams),
+     *   "subject_id": 1 (optional, for exams),
      *   "device_id": "fingerprint-hash",
-     *   "user_id": 1 (optional, if logged in)
      * }
      */
     public function checkAccess(Request $request): JsonResponse
     {
-        $request->validate([
-            'feature' => 'required|in:essay,exam,document,flashcard',
-            'device_id' => 'required|string|max:255',
-        ]);
+        try {
+            $validated = $request->validate([
+                'feature' => 'required|in:essay,exam,document,flashcard',
+                'device_id' => 'required|string|max:255',
+                'exam_id' => 'nullable|integer',
+                'subject_id' => 'nullable|integer',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $e->errors(),
+                'message' => 'Invalid request parameters',
+            ], 400);
+        }
 
         $feature = $request->input('feature');
         $deviceId = $request->input('device_id');
@@ -44,78 +55,74 @@ class FreemiumController extends Controller
             'authenticated' => auth()->check(),
         ]);
 
-        // 1. Check if user has active subscription
-        if ($userId) {
-            $subscription = Subscription::where('user_id', $userId)
-                ->where('is_active', true)
-                ->where('valid_until', '>=', now()->toDateString())
-                ->first();
+        // ── EXAMS: New logic with attempt tracking ──────────────────────────
+        if ($feature === 'exam') {
+            $examId = $request->input('exam_id');
+            $subjectId = $request->input('subject_id');
 
-            \Log::info('Subscription check result', [
-                'user_id' => $userId,
-                'has_subscription' => !!$subscription,
-                'subscription' => $subscription ? ['id' => $subscription->id, 'plan' => $subscription->plan] : null,
-            ]);
-
-            if ($subscription) {
-                \Log::info('User has active subscription - granting access', [
-                    'user_id' => $userId,
-                    'plan' => $subscription->plan,
-                ]);
-                return $this->successResponse([
-                    'can_access' => true,
-                    'reason' => 'subscription',
-                    'message' => 'Access granted via subscription',
-                    'subscription' => [
-                        'plan' => $subscription->getPlanDisplay(),
-                        'valid_until' => $subscription->valid_until->toDateString(),
-                    ],
-                ]);
+            if (!$examId || !$subjectId) {
+                return response()->json(['error' => 'exam_id and subject_id required for exams'], 400);
             }
+
+            // 1. Check subscription first
+            if ($userId) {
+                $subscription = \App\Models\Subscription::where('user_id', $userId)
+                    ->where('is_active', true)
+                    ->where('valid_until', '>=', now()->toDateString())
+                    ->first();
+
+                if ($subscription) {
+                    // Check if subscription includes this subject
+                    $subjects = $subscription->subjects ?? [];
+                    if ($subscription->plan === 'full' || in_array($subjectId, $subjects)) {
+                        return $this->successResponse([
+                            'can_access' => true,
+                            'reason' => 'subscription',
+                            'message' => 'Full access via subscription',
+                        ]);
+                    }
+                }
+            }
+
+            // 2. Check free attempts (3 per subject)
+            if ($userId) {
+                $attemptCount = \App\Models\UserExamAttempt::where('user_id', $userId)
+                    ->where('subject_id', $subjectId)
+                    ->count();
+
+                if ($attemptCount < 3) {
+                    return $this->successResponse([
+                        'can_access' => true,
+                        'reason' => 'free_exam_attempts',
+                        'message' => "Free exam attempt " . ($attemptCount + 1) . " of 3",
+                        'attempts_used' => $attemptCount,
+                        'attempts_remaining' => 3 - $attemptCount,
+                    ]);
+                }
+            }
+
+            // 3. No access - show paywall
+            return $this->denyAccessWithPricing([
+                'can_access' => false,
+                'reason' => 'exam_limit_exceeded',
+                'message' => 'Bạn đã dùng 3 lần làm đề free. Mua gói để tiếp tục.',
+            ]);
         }
 
-        // 2. Check freemium usage (IP + Device) - only if no subscription
-        $usage = FreemiumUsage::getOrCreate($ipAddress, $deviceId, $feature);
-
-        \Log::info('Freemium usage check', [
-            'device_id' => $deviceId,
-            'feature' => $feature,
-            'used_count' => $usage->used_count,
-            'limit' => self::FREE_LIMIT,
-            'has_remaining' => $usage->hasRemainingUses(self::FREE_LIMIT),
-        ]);
-
-        if ($usage->hasRemainingUses(self::FREE_LIMIT)) {
-            // Increment usage
-            $usage->incrementUsage();
-
-            \Log::info('Freemium access granted', [
-                'feature' => $feature,
-                'used_count' => $usage->used_count,
-                'limit' => self::FREE_LIMIT,
-            ]);
-
+        // ── OTHER FEATURES: Essays, Documents, Flashcards = Always FREE ──────
+        if (in_array($feature, ['essay', 'document', 'flashcard'])) {
             return $this->successResponse([
                 'can_access' => true,
-                'reason' => 'freemium',
-                'message' => "Free use {$usage->used_count} of " . self::FREE_LIMIT,
-                'remaining_uses' => self::FREE_LIMIT - $usage->used_count,
+                'reason' => 'always_free',
+                'message' => 'Full free access to ' . $feature,
             ]);
         }
 
-        // 3. No access - show pricing modal
-        \Log::info('Freemium access denied - limit exceeded', [
-            'feature' => $feature,
-            'used_count' => $usage->used_count,
-            'limit' => self::FREE_LIMIT,
-        ]);
-
+        // Fallback
         return $this->denyAccessWithPricing([
             'can_access' => false,
-            'reason' => 'limit_exceeded',
-            'message' => 'You have used all free attempts. Please subscribe to continue.',
-            'used_count' => $usage->used_count,
-            'limit' => self::FREE_LIMIT,
+            'reason' => 'unknown',
+            'message' => 'Unable to determine access',
         ]);
     }
 

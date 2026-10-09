@@ -1,16 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { essayApi, subjectApi, categoryApi, toArray, subscriptionApi } from '../services/api';
-import useFreemium from '../hooks/useFreemium';
+import { essayApi, subjectApi, categoryApi, toArray } from '../services/api';
 import PageHeader from '../components/PageHeader';
 import QuickLikeWidget from '../components/QuickLikeWidget';
 import CommentsModal from '../components/CommentsModal';
-import AccessDeniedModal from '../components/AccessDeniedModal';
 import './ExamsPage.css';
 
 export default function EssaysPage() {
   const navigate = useNavigate();
-  const { checkAccess } = useFreemium();
 
   // State for Subjects view
   const [subjects,      setSubjects]      = useState([]);
@@ -30,9 +27,6 @@ export default function EssaysPage() {
   // State for Comments Modal
   const [commentsModalOpen, setCommentsModalOpen] = useState(false);
   const [selectedItemForComments, setSelectedItemForComments] = useState(null);
-
-  // State for Access Denied Modal
-  const [accessDeniedOpen, setAccessDeniedOpen] = useState(false);
 
   // Load categories and subjects on mount
   useEffect(() => {
@@ -77,30 +71,10 @@ export default function EssaysPage() {
       return sortTime === 'newest' ? timeB - timeA : timeA - timeB;
     });
 
-  // Handle essay button click with freemium check
-  const handleEssayClick = useCallback(async (essay) => {
-    const result = await checkAccess('essay');
-    if (result.can_access) {
-      // Check if user has access to this subject
-      const token = localStorage.getItem('lh_token');
-      if (token && selectedSubject?.id) {
-        try {
-          const response = await subscriptionApi.checkSubject({ subject_id: selectedSubject.id });
-          
-          const data = response.data;
-          if (!data.has_access) {
-            setAccessDeniedOpen(true);
-            return;
-          }
-        } catch (err) {
-          console.error('Error checking subject access:', err);
-        }
-      }
-      
-      navigate(`/essays/${essay.id}`);
-    }
-    // If can't access, checkAccess already shows paywall modal
-  }, [navigate, checkAccess, selectedSubject]);
+  // Handle essay button click - essays always free
+  const handleEssayClick = useCallback((essay) => {
+    navigate(`/essays/${essay.id}`);
+  }, [navigate]);
 
   return (
     <div className="exams-page page-enter">
@@ -215,7 +189,7 @@ export default function EssaysPage() {
                         />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <button className="btn btn-primary" onClick={() => handleEssayClick(essay)}>✍️ Làm bài</button>
+                        <button className="btn btn-primary" onClick={() => handleEssayClick(essay)}>Làm bài</button>
                       </div>
                     </div>
                   ))}
@@ -236,13 +210,6 @@ export default function EssaysPage() {
           title={selectedItemForComments.title}
         />
       )}
-
-      {/* Access Denied Modal */}
-      <AccessDeniedModal
-        isOpen={accessDeniedOpen}
-        onClose={() => setAccessDeniedOpen(false)}
-        title="Không có quyền truy cập"
-      />
     </div>
   );
 }

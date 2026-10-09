@@ -50,6 +50,42 @@ class DocumentController extends Controller
         ]);
     }
 
+    // GET /api/admin/documents
+    public function adminIndex(Request $request)
+    {
+        $query = Document::with(['subjectModel.category']);
+
+        if ($request->filled('q')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->q . '%')
+                  ->orWhere('chapter', 'like', '%' . $request->q . '%');
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->whereHas('subjectModel.category', fn ($q) =>
+                $q->where('id', $request->category)
+                  ->orWhere('slug', $request->category)
+            );
+        }
+
+        if ($request->filled('subjects')) {
+            $subjects = explode(',', $request->subjects);
+            $query->whereIn('subject_id', $subjects);
+        }
+
+        $perPage = $request->input('per_page', 8);
+        $docs = $query->orderByDesc('created_at')->paginate($perPage);
+
+        return response()->json([
+            'data' => $docs->items(),
+            'current_page' => $docs->currentPage(),
+            'last_page'    => $docs->lastPage(),
+            'total'        => $docs->total(),
+            'per_page'     => $docs->perPage(),
+        ]);
+    }
+
     // GET /api/documents/{id}
     public function show(Document $document)
     {

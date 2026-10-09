@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useMatch } from 'react-router-dom';
-import { examApi, documentApi } from '../services/api';
+import { examApi, documentApi, subscriptionApi } from '../services/api';
 import api from '../services/api';
 import { useFreemium } from '../hooks/useFreemium';
 import './ExamPage.css';
@@ -79,7 +79,7 @@ function TimerWidget({ seconds, display, totalSeconds }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Question Navigator panel
 // ─────────────────────────────────────────────────────────────────────────────
-function QuestionNavigator({ total, current, answers = {}, bookmarks = new Set(), questions = [], onJump }) {
+function QuestionNavigator({ total, current, answers = {}, bookmarks = new Set(), questions = [], onJump, mode = 'exam' }) {
   const getStatus = idx => {
     const question = questions[idx];
     if (!question) return 'unanswered';
@@ -93,29 +93,47 @@ function QuestionNavigator({ total, current, answers = {}, bookmarks = new Set()
       return 'unanswered';
     }
     
-    // Compare answer with correctAnswer
+    // For exam mode: answered (đã làm) vs unanswered
+    if (mode === 'exam') {
+      return 'answered';
+    }
+    
+    // For practice mode: show correct/wrong
     const isCorrect = userAnswer === question.correctAnswer;
     return isCorrect ? 'correct' : 'wrong';
   };
 
-  // Count using question.id as key
+  // Count stats based on mode
   let correctCount = 0;
   let wrongCount = 0;
+  let answeredCount = 0;
   
   questions.forEach((q) => {
     const ans = answers[q.id];
     if (ans !== undefined) {
-      if (ans === q.correctAnswer) correctCount++;
-      else wrongCount++;
+      answeredCount++;
+      if (mode !== 'exam') {
+        if (ans === q.correctAnswer) correctCount++;
+        else wrongCount++;
+      }
     }
   });
 
   return (
     <div className="nav-panel">
       <div className="nav-panel__legend">
-        <span className="legend-item"><span className="legend-dot correct" />Đúng ({correctCount})</span>
-        <span className="legend-item"><span className="legend-dot wrong" />Sai ({wrongCount})</span>
-        <span className="legend-item"><span className="legend-dot unanswered" />Chưa trả lời ({total - Object.keys(answers).length})</span>
+        {mode === 'exam' ? (
+          <>
+            <span className="legend-item"><span className="legend-dot answered" />Đã làm ({answeredCount})</span>
+            <span className="legend-item"><span className="legend-dot unanswered" />Chưa trả lời ({total - answeredCount})</span>
+          </>
+        ) : (
+          <>
+            <span className="legend-item"><span className="legend-dot correct" />Đúng ({correctCount})</span>
+            <span className="legend-item"><span className="legend-dot wrong" />Sai ({wrongCount})</span>
+            <span className="legend-item"><span className="legend-dot unanswered" />Chưa trả lời ({total - Object.keys(answers).length})</span>
+          </>
+        )}
       </div>
       <div className="nav-grid">
         {Array.from({ length: total }, (_, i) => {
@@ -209,10 +227,10 @@ function ResultsScreen({ questions, answers, durationSecs, totalSecs, examTitle,
   const pct     = Math.round((correct / total) * 100);
   const timeTaken = totalSecs - durationSecs;
 
-  const grade = pct >= 80 ? { label: 'Xuất sắc', color: '#22c55e', emoji: '🏆' }
-              : pct >= 65 ? { label: 'Khá',       color: '#3b82f6', emoji: '👍' }
-              : pct >= 50 ? { label: 'Trung bình', color: '#f59e0b', emoji: '📖' }
-              :             { label: 'Cần cố gắng', color: '#ef4444', emoji: '💪' };
+  const grade = pct >= 80 ? { label: 'Xuất sắc', color: '#22c55e', emoji: '' }
+              : pct >= 65 ? { label: 'Khá',       color: '#3b82f6', emoji: '' }
+              : pct >= 50 ? { label: 'Trung bình', color: '#f59e0b', emoji: '' }
+              :             { label: 'Cần cố gắng', color: '#ef4444', emoji: '' };
 
   const fmt = s => `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
 
@@ -285,7 +303,7 @@ function ResultsScreen({ questions, answers, durationSecs, totalSecs, examTitle,
 
             // Determine status badge and color
             let statusClass = 'correct';
-            let statusLabel = '✓ Đúng';
+            let statusLabel = 'Đúng';
             if (isEssayOrScenario && skipped) {
               statusClass = 'skipped';
               statusLabel = '— Bỏ qua';
@@ -295,7 +313,7 @@ function ResultsScreen({ questions, answers, durationSecs, totalSecs, examTitle,
             } else if (!isEssayOrScenario) {
               if (isCorrect) {
                 statusClass = 'correct';
-                statusLabel = '✓ Đúng';
+                statusLabel = 'Đúng';
               } else if (skipped) {
                 statusClass = 'skipped';
                 statusLabel = '— Bỏ qua';
@@ -393,6 +411,7 @@ export default function ExamPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const mode = searchParams.get('mode') || 'exam';
+  const { checkAccess: checkFreemiumAccess } = useFreemium();
 
   // Phân biệt document (tài liệu) vs exam (đề thi thử)
   const isDocument = !!useMatch('/document/:examId');
@@ -403,6 +422,7 @@ export default function ExamPage() {
   const [questions, setQuestions] = useState([]);
   const [loadingQ,  setLoadingQ]  = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [attemptInfo, setAttemptInfo] = useState(null); // Track free attempts
 
   useEffect(() => {
     // Load exam metadata
@@ -426,21 +446,43 @@ export default function ExamPage() {
               loadQuestions(res.data);
               return;
             }
-            
-            // Check if user has access to this subject
-            const checkResponse = await subscriptionApi.checkSubject({ subject_id: res.data.subject_id });
-            console.log('Subject access check response:', checkResponse.data);
-            
-            if (!checkResponse.data.has_access) {
-              console.log('Access DENIED');
+
+            // ── Check freemium access for BOTH exams and documents ──
+            const freemiumFeature = isDocument ? 'document' : 'exam';
+            const freemiumResult = await checkFreemiumAccess(freemiumFeature, {
+              exam_id: examId,
+              subject_id: res.data.subject_id,
+            });
+
+            console.log('📊 Freemium check result:', { feature: freemiumFeature, result: freemiumResult });
+
+            if (!freemiumResult.can_access) {
+              console.log('❌ Access denied - paywall');
               setAccessDenied(true);
               setLoadingQ(false);
               return;
             }
-            
-            console.log('Access GRANTED');
+
+            // Store attempt info (only for exams)
+            if (!isDocument) {
+              setAttemptInfo({
+                reason: freemiumResult.reason,
+                attempts_used: freemiumResult.attempts_used || 0,
+                attempts_remaining: freemiumResult.attempts_remaining !== undefined ? freemiumResult.attempts_remaining : null,
+              });
+
+              // Record exam attempt in DB
+              try {
+                const recordRes = await examApi.recordAttempt(examId, { subject_id: res.data.subject_id });
+                console.log('📝 Exam attempt recorded:', recordRes.data);
+              } catch (err) {
+                console.error('Failed to record attempt:', err);
+              }
+            }
+
+            console.log('✅ Access granted:', freemiumResult.reason);
           } catch (err) {
-            console.error('Error checking subject access:', err);
+            console.error('Error checking access:', err);
           }
           
           // Load questions if access is granted
@@ -625,6 +667,11 @@ export default function ExamPage() {
             <span className={`exam-topbar__mode ${isPractice ? 'mode-practice' : 'mode-exam'}`}>
               {isPractice ? 'Chế độ luyện tập' : 'Thi thật'}
             </span>
+            {attemptInfo && attemptInfo.reason === 'free_exam_attempts' && (
+              <span className="exam-attempt-badge">
+                📝 Lần {attemptInfo.attempts_used + 1}/3 (Free)
+              </span>
+            )}
           </div>
         </div>
 
@@ -710,6 +757,7 @@ export default function ExamPage() {
                 bookmarks={bookmarks}
                 questions={questions}
                 onJump={goTo}
+                mode={mode}
               />
             </div>
 

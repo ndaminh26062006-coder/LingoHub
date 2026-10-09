@@ -165,7 +165,10 @@ function ExamCard({ exam }) {
   };
 
   const handleExamClick = async () => {
-    const result = await checkAccess('exam');
+    const result = await checkAccess('exam', {
+      exam_id: exam.id,
+      subject_id: exam.subject_id,
+    });
     if (result.can_access) {
       // Check if user has access to this subject
       const token = localStorage.getItem('lh_token');

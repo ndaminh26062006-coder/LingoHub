@@ -65,15 +65,27 @@ class ExamController extends Controller
             });
         }
 
-        $exams = $query->orderByDesc('created_at')->paginate(100);
+        if ($request->filled('category')) {
+            $query->whereHas('subjectModel.category', fn ($q) =>
+                $q->where('id', $request->category)
+                  ->orWhere('slug', $request->category)
+            );
+        }
+
+        if ($request->filled('subjects')) {
+            $subjects = explode(',', $request->subjects);
+            $query->whereIn('subject_id', $subjects);
+        }
+
+        $perPage = $request->input('per_page', 8);
+        $exams = $query->orderByDesc('created_at')->paginate($perPage);
 
         return response()->json([
             'data' => $exams->items(),
-            'meta' => [
-                'current_page' => $exams->currentPage(),
-                'last_page'    => $exams->lastPage(),
-                'total'        => $exams->total(),
-            ],
+            'current_page' => $exams->currentPage(),
+            'last_page'    => $exams->lastPage(),
+            'total'        => $exams->total(),
+            'per_page'     => $exams->perPage(),
         ]);
     }
 
@@ -431,5 +443,54 @@ class ExamController extends Controller
             'explanation' => $explanation,
             'difficulty' => 'Trung bình',
         ];
+    }
+
+    /**
+     * Record exam attempt for freemium tracking
+     * 
+     * POST /api/exams/{exam}/record-attempt
+     * Body: {
+     *   "subject_id": 1
+     * }
+     */
+    public function recordAttempt(Request $request, Exam $exam)
+    {
+        $request->validate([
+            'subject_id' => 'required|integer',
+        ]);
+
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $subjectId = $request->input('subject_id');
+
+        // Check if already attempted this exact exam
+        $existing = \App\Models\UserExamAttempt::where('user_id', $user->id)
+            ->where('exam_id', $exam->id)
+            ->where('subject_id', $subjectId)
+            ->first();
+
+        if (!$existing) {
+            // Create new attempt record
+            \App\Models\UserExamAttempt::create([
+                'user_id' => $user->id,
+                'exam_id' => $exam->id,
+                'subject_id' => $subjectId,
+                'attempted_at' => now(),
+            ]);
+        }
+
+        // Get total attempts for this subject
+        $totalAttempts = \App\Models\UserExamAttempt::where('user_id', $user->id)
+            ->where('subject_id', $subjectId)
+            ->count();
+
+        return response()->json([
+            'message' => 'Attempt recorded',
+            'attempt_number' => $totalAttempts,
+            'can_continue' => true,
+        ]);
     }
 }

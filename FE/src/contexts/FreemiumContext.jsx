@@ -89,9 +89,10 @@ export function FreemiumProvider({ children }) {
 
   /**
    * Check access for a feature
-   * Returns: { can_access, reason, message, remaining_uses, pricing?, subscription? }
+   * For exams: pass exam_id and subject_id
+   * Returns: { can_access, reason, message, attempts_used?, attempts_remaining?, pricing?, subscription? }
    */
-  const checkAccess = useCallback(async (feature) => {
+  const checkAccess = useCallback(async (feature, options = {}) => {
     if (deviceLoading || !deviceId) {
       setError('Device ID not ready');
       return { can_access: false, reason: 'device_not_ready' };
@@ -102,17 +103,26 @@ export function FreemiumProvider({ children }) {
 
     try {
       const token = localStorage.getItem('lh_token');
-      console.log('🔍 checkAccess:', { feature, hasToken: !!token, subscription });
+      console.log('🔍 checkAccess:', { feature, hasToken: !!token, subscription, options });
       
-      const response = await freemiumApi.checkAccess({
+      const payload = {
         feature,
         device_id: deviceId,
-      });
+      };
 
-      console.log('✅ checkAccess response:', { status: response.status, data: response.data });
+      // For exams: include exam_id and subject_id
+      if (feature === 'exam' && options.exam_id && options.subject_id) {
+        payload.exam_id = options.exam_id;
+        payload.subject_id = options.subject_id;
+      }
 
-      // Handle 403 (paywall) - no error thrown, just check response status
+      const response = await freemiumApi.checkAccess(payload);
+
+      console.log('checkAccess response:', { status: response.status, data: response.data });
+
+      // Handle 403 (paywall) - resolved from interceptor
       if (response.status === 403) {
+        console.log('📵 Access denied - showing pricing modal');
         setCanAccessCurrently(false);
         setAccessMessage(response.data.message || 'Access denied');
         setPricingModal(true);
@@ -124,17 +134,19 @@ export function FreemiumProvider({ children }) {
         setError(null);
         return {
           can_access: false,
-          reason: 'limit_exceeded',
+          reason: response.data.reason || 'limit_exceeded',
           message: response.data.message || 'You have used all free attempts',
           ...response.data,
         };
       }
 
       // Success (200)
-      console.log('✅ checkAccess success:', {
+      console.log('checkAccess success:', {
         can_access: response.data.can_access,
         reason: response.data.reason,
         message: response.data.message,
+        attempts_used: response.data.attempts_used,
+        attempts_remaining: response.data.attempts_remaining,
       });
 
       setCanAccessCurrently(response.data.can_access);

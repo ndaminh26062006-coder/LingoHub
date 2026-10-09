@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../context/AuthContext';
 import { flashcardApi, toArray } from '../services/api';
-import useFreemium from '../hooks/useFreemium';
 import CommentsSection from '../components/CommentsSection';
-import LikeButton from '../components/LikeButton';
 import QuickLikeWidget from '../components/QuickLikeWidget';
 import CommentsModal from '../components/CommentsModal';
 import './FlashcardPage.css';
@@ -76,7 +74,6 @@ function DeckCard({ deck, onStudy, onEdit, isOwn, onViewComments }) {
         </button>
         {isOwn && (
           <button className="btn btn-outline deck-card__edit" onClick={() => onEdit(deck)} title="Chỉnh sửa">
-            ✏️
           </button>
         )}
       </div>
@@ -84,7 +81,7 @@ function DeckCard({ deck, onStudy, onEdit, isOwn, onViewComments }) {
   );
 }
 // Study View (flip cards)
-function StudyView({ deck, onBack }) {
+function StudyView({ deck, onBack, onViewComments }) {
   const [cardIdx, setCardIdx] = useState(0);
   const [known, setKnown] = useState(new Set());
   const [repeat, setRepeat] = useState(new Set());
@@ -157,7 +154,7 @@ function StudyView({ deck, onBack }) {
         <div className="fc-progress-info">
           <span className="fc-progress-text">Thẻ <strong>{Math.min(cardIdx + 1, cards.length)}</strong> / {cards.length}</span>
           <div className="fc-progress-stats">
-            <span className="fc-stat know">✓ Thuộc: {known.size}</span>
+            <span className="fc-stat know">Thuộc: {known.size}</span>
             <span className="fc-stat repeat">↺ Cần ôn: {repeat.size}</span>
           </div>
         </div>
@@ -204,7 +201,7 @@ function StudyView({ deck, onBack }) {
           {/* Comments & Likes */}
           <div className="exam-footer-section container" style={{ marginTop: '32px' }}>
             <div className="exam-footer-row">
-              <LikeButton likeableType="FlashcardDeck" likeableId={deck.id} />
+              <QuickLikeWidget likeableType="FlashcardDeck" likeableId={deck.id} onViewComments={onViewComments} />
             </div>
             <CommentsSection commentableType="FlashcardDeck" commentableId={deck.id} />
           </div>
@@ -219,7 +216,6 @@ function StudyView({ deck, onBack }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function FlashcardPage() {
   const { user } = useAuth();
-  const { checkAccess } = useFreemium();
 
   const [mainTab, setMainTab] = useState('official');
   const [studyDeck, setStudyDeck] = useState(null);
@@ -256,12 +252,8 @@ export default function FlashcardPage() {
   }, [user]);
 
   // Study mode handler with freemium check
-  const handleStudyDeck = async (deck) => {
-    const result = await checkAccess('flashcard');
-    if (result.can_access) {
-      setStudyDeck(deck);
-    }
-    // If can't access, checkAccess already shows paywall modal
+  const handleStudyDeck = (deck) => {
+    setStudyDeck(deck);
   };
 
   // Study mode
@@ -270,7 +262,7 @@ export default function FlashcardPage() {
       <div className="flashcard-page page-enter">
         <PageHeader title="Flashcard" subtitle={studyDeck.name} icon="" accentColor={studyDeck.color} />
         <div className="container fc-body">
-          <StudyView deck={studyDeck} onBack={() => setStudyDeck(null)} />
+          <StudyView deck={studyDeck} onBack={() => setStudyDeck(null)} onViewComments={() => setCommentsModalOpen(true)} />
         </div>
       </div>
     );
@@ -406,7 +398,7 @@ export default function FlashcardPage() {
 
             {!user ? (
               <div className="fc-login-prompt">
-                <span className="fc-lp-icon">🔐</span>
+                <span className="fc-lp-icon"></span>
                 <h4>Đăng nhập để tạo bộ thẻ</h4>
                 <p>Bạn cần đăng nhập để tạo và quản lý bộ thẻ cá nhân.</p>
                 <a href="/login" className="btn btn-primary">Đăng nhập ngay</a>

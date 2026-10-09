@@ -441,7 +441,7 @@
   border-radius: 3px;
   flex-shrink: 0;
 }
-.legend-dot.answered   { background: var(--navy); }
+.legend-dot.answered   { background: #0ea5e9; }
 .legend-dot.correct    { background: #22c55e; }
 .legend-dot.wrong      { background: #ef4444; }
 .legend-dot.bookmarked { background: var(--orange); }
@@ -471,7 +471,7 @@
 }
 
 .nav-btn--answered {
-  background: var(--navy);
+  background: #0ea5e9;
   color: var(--white);
 }
 
@@ -770,4 +770,18 @@
   .exam-footer-row {
     margin-bottom: 24px;
   }
+}
+
+
+/* ── Attempt counter badge ── */
+.exam-attempt-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  display: inline-block;
+  margin-top: 4px;
 }
